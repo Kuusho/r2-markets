@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2-Markets :: Databank</title>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    body {
+      margin: 0; padding: 20px 0 40px;
+      background-color: #EFEFEF;
+      background-image: repeating-linear-gradient(45deg,transparent 0,transparent 7px,#DEDEDE 7px,#DEDEDE 8px);
+      background-size: 16px 16px;
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: 11px; color: #333333;
+    }
+    a:link    { color: #0033CC; text-decoration: underline; }
+    a:visited { color: #800080; text-decoration: underline; }
+    a:hover   { color: #CC0000; }
+    h3 { font-family: Georgia, serif; font-size: 14px; color: #990000; margin-bottom: 4px; }
+    p.body { font-size: 11px; line-height: 1.7; color: #333; margin-bottom: 10px; }
+    code { font-family: 'Courier New', monospace; font-size: 10px; background: #F0F0F0; padding: 1px 3px; }
+    blockquote { margin: 8px 0 8px 16px; padding: 6px 10px; border-left: 3px solid #AAAACC; background: #F8F8FF; font-style: italic; font-size: 11px; color: #555; }
+    .toc-item { border-bottom: 1px dotted #CCCCCC; padding: 3px 4px; font-size: 10px; }
+    .toc-item a { color: #0033CC; }
+    .section-header {
+      font-family: Georgia, serif; font-size: 12px; font-weight: bold; color: #FFFFFF;
+      background: #003399; padding: 3px 6px; margin-bottom: 6px; display: block;
+    }
+  </style>
+</head>
+<body>
+
+<table width="760" align="center" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+       style="border-left:1px solid #CCCCCC; border-right:1px solid #CCCCCC; min-height:600px;">
+<tr><td>
+
+  <!-- HEADER -->
+  <table width="760" bgcolor="#0B0B2A" border="0" cellpadding="0" cellspacing="0" style="border-bottom:2px solid #CCCCCC;">
+  <tr>
+    <td height="50" valign="middle" style="padding:0 0 0 20px;">
+      <span style="font-family:Georgia,serif; font-size:20px; font-weight:bold; color:#C8D8F8; text-shadow:1px 1px 0 #fff;">R2-Markets :: Databank</span>
+      <span style="font-family:Verdana,sans-serif; font-size:10px; color:#6688BB; margin-left:14px;">protocol reference // lore // faq</span>
+    </td>
+    <td align="right" valign="middle" style="padding-right:20px;">
+      <span style="font-size:10px; color:#99AACC; font-family:Verdana,sans-serif;">r2-agent [0x8004A...]</span>
+    </td>
+  </tr>
+  </table>
+
+  <!-- NAV BAR -->
+  <table width="760" bgcolor="#003399" border="0" cellpadding="5" cellspacing="0">
+  <tr>
+    <td style="font-size:11px; font-family:Verdana,sans-serif; white-space:nowrap;">
+      &nbsp;<a href="rss-screen-1-splash.html" style="color:#CCDDFF; text-decoration:none;">Home</a>
+      &nbsp;|&nbsp;<a href="rss-screen-2-dashboard.html" style="color:#CCDDFF; text-decoration:none;">Market Feed</a>
+      &nbsp;|&nbsp;<a href="rss-screen-3-mint.html" style="color:#CCDDFF; text-decoration:none;">Execute</a>
+      &nbsp;|&nbsp;<a href="rss-screen-4-gallery.html" style="color:#CCDDFF; text-decoration:none;">Manifest</a>
+      &nbsp;|&nbsp;<a href="rss-screen-5-lore.html" style="color:#FFFFFF; text-decoration:none; font-weight:bold;">Databank</a>
+      &nbsp;|&nbsp;<a href="rss-screen-6-strategy.html" style="color:#CCDDFF; text-decoration:none;">Strategy</a>
+      &nbsp;|&nbsp;<a href="rss-screen-7-profile.html" style="color:#CCDDFF; text-decoration:none;">Agent Profile</a>
+      &nbsp;
+    </td>
+    <td align="right" style="font-size:10px; padding-right:8px;">
+      <span style="background:#EE802F; color:#FFF; padding:1px 5px; font-weight:bold; font-size:9px;">RSS</span>
+    </td>
+  </tr>
+  </table>
+
+  <!-- BREADCRUMB -->
+  <table width="760" bgcolor="#F5F5F5" border="0" cellpadding="4" cellspacing="0" style="border-bottom:1px solid #CCCCCC;">
+  <tr>
+    <td style="font-size:10px; color:#666; padding-left:14px;">
+      <a href="rss-screen-1-splash.html">Home</a> &rsaquo; <strong>Databank</strong>
+      &nbsp;&mdash;&nbsp; Protocol reference, FAQ, and lore
+    </td>
+  </tr>
+  </table>
+
+  <!-- ═══ 2-COLUMN CONTENT ═══ -->
+  <table width="760" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+
+    <!-- LEFT INDEX (160px) -->
+    <td width="160" bgcolor="#F8F8F8" style="border-right:1px solid #CCCCCC; padding:12px 8px;">
+
+      <span class="section-header">Contents</span>
+      <div class="toc-item"><a href="#what">1. What is R2-Markets?</a></div>
+      <div class="toc-item"><a href="#erc8004">2. ERC-8004 Protocol</a></div>
+      <div class="toc-item"><a href="#agents">3. How Agents Work</a></div>
+      <div class="toc-item"><a href="#register">4. Registration</a></div>
+      <div class="toc-item"><a href="#strategy">5. Strategy Engine</a></div>
+      <div class="toc-item"><a href="#yield">6. Yield &amp; Fees</a></div>
+      <div class="toc-item"><a href="#keys">7. Two-Key Model</a></div>
+      <div class="toc-item"><a href="#faq">8. FAQ</a></div>
+      <div class="toc-item"><a href="#lore">9. Protocol Lore</a></div>
+
+      <br>
+      <span class="section-header">Downloads</span>
+      <div class="toc-item"><a href="#">&#128196; Whitepaper (PDF)</a></div>
+      <div class="toc-item"><a href="#">&#128196; ABI Reference</a></div>
+      <div class="toc-item"><a href="#">&#128196; Agent SDK Docs</a></div>
+
+      <br>
+      <span class="section-header">Last Updated</span>
+      <div style="font-size:9px; color:#666; padding:4px;">03/03/2026<br>Protocol v1.0.4</div>
+    </td>
+
+    <!-- MAIN CONTENT (600px) -->
+    <td width="600" style="padding:16px 20px;">
+
+      <a name="what"></a>
+      <h3>1. What is R2-Markets?</h3>
+      <p class="body">
+        R2-Markets is an <strong>agent-only NFT marketplace</strong> running on Base network.
+        Unlike traditional marketplaces where humans manually browse and purchase, R2-Markets
+        operates through registered AI agents that autonomously detect floor opportunities,
+        execute bids, and manage portfolios according to pre-configured strategy parameters.
+      </p>
+      <p class="body">
+        Human users interact with the protocol exactly once: during initial <a href="#register">agent registration</a>.
+        After that, the registered agent operates independently. Humans may view agent activity
+        via this log, and adjust strategy parameters at any time.
+      </p>
+
+      <hr size="1" color="#EEEEEE" style="margin:14px 0;">
+
+      <a name="erc8004"></a>
+      <h3>2. ERC-8004 Protocol</h3>
+      <p class="body">
+        ERC-8004 is a proposed Ethereum standard for on-chain agent identity. Each registered
+        agent is assigned a permanent identity token bound to:
+      </p>
+      <table width="100%" border="0" cellpadding="4" cellspacing="0" style="border-collapse:collapse; border:1px solid #CCCCCC; margin-bottom:10px;">
+        <tr bgcolor="#F0F0F8">
+          <th align="left" style="font-size:10px; border-bottom:1px solid #CCCCCC; padding:4px 8px;">Field</th>
+          <th align="left" style="font-size:10px; border-bottom:1px solid #CCCCCC; padding:4px 8px;">Description</th>
+        </tr>
+        <tr>
+          <td style="font-size:10px; padding:4px 8px; border-bottom:1px solid #EEEEEE; font-family:'Courier New',monospace;">agent_id</td>
+          <td style="font-size:10px; padding:4px 8px; border-bottom:1px solid #EEEEEE;">Unique 256-bit identifier, immutable once set</td>
+        </tr>
+        <tr bgcolor="#FAFAFA">
+          <td style="font-size:10px; padding:4px 8px; border-bottom:1px solid #EEEEEE; font-family:'Courier New',monospace;">strategy_hash</td>
+          <td style="font-size:10px; padding:4px 8px; border-bottom:1px solid #EEEEEE;">Keccak256 of current strategy config</td>
+        </tr>
+        <tr>
+          <td style="font-size:10px; padding:4px 8px; font-family:'Courier New',monospace;">operator_key</td>
+          <td style="font-size:10px; padding:4px 8px;">Hot wallet authorized to execute trades</td>
+        </tr>
+      </table>
+
+      <hr size="1" color="#EEEEEE" style="margin:14px 0;">
+
+      <a name="agents"></a>
+      <h3>3. How Agents Work</h3>
+      <p class="body">
+        Each agent runs a continuous loop:
+      </p>
+      <blockquote>
+        Observe floor price &rarr; Compare to trigger threshold &rarr; If floor drops &gt; X%, fire bid
+        &rarr; Confirm acquisition &rarr; Set limit ask at ceiling &rarr; Report yield
+      </blockquote>
+      <p class="body">
+        This loop runs every 400ms per monitored collection. Agents use the R2-Markets
+        <a href="#">Strategy Engine</a> to determine bid amounts and ceiling pricing.
+      </p>
+
+      <hr size="1" color="#EEEEEE" style="margin:14px 0;">
+
+      <a name="faq"></a>
+      <h3>8. Frequently Asked Questions</h3>
+
+      <p style="font-size:11px; font-weight:bold; color:#003399; margin-bottom:2px;">Q: Is registration really gasless?</p>
+      <p class="body">Yes. Phase 1 registration uses a meta-transaction relay. You sign a message with your wallet; the relay posts it on-chain and absorbs the gas cost from protocol fees.</p>
+
+      <p style="font-size:11px; font-weight:bold; color:#003399; margin-bottom:2px;">Q: Can I withdraw my NFTs at any time?</p>
+      <p class="body">Yes. The agent holds a temporary operating key. Your master key (the wallet you registered with) can revoke agent access at any time, returning all assets to your custody.</p>
+
+      <p style="font-size:11px; font-weight:bold; color:#003399; margin-bottom:2px;">Q: What is the fee structure?</p>
+      <p class="body">R2-Markets charges a <strong>1.5% protocol fee</strong> on profitable trades only. No fee on flat or negative-yield exits. Fees fund agent relay gas and protocol development.</p>
+
+    </td>
+
+  </tr>
+  </table>
+
+  <!-- FOOTER -->
+  <table width="760" bgcolor="#F5F5F5" border="0" cellpadding="6" cellspacing="0" style="border-top:2px solid #CCCCCC;">
+  <tr>
+    <td style="font-size:10px; color:#999;">&copy; 2026 R2-Systems Corp. All rights reserved.</td>
+    <td align="right" style="font-size:10px; color:#999;">
+      <a href="#">RSS Feed</a> &bull; <a href="#">Sitemap</a> &bull; <a href="#">Contact</a>
+    </td>
+  </tr>
+  </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>

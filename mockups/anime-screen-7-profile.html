@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: AGENT PROFILE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root { --bg:#1A0B2E; --pink:#FF007F; --green:#CCFF00; --cyan:#00FFFF; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); width:100vw; height:100vh; overflow:hidden; position:relative; font-family:'Share Tech Mono',monospace; }
+
+    /* Katakana layer */
+    .kata-layer {
+      position:absolute; inset:0; z-index:1; pointer-events:none;
+      font-family:'Noto Sans JP',sans-serif; font-weight:900; font-size:90px;
+      color:rgba(255,255,255,0.03); line-height:1.1; letter-spacing:-3px;
+      padding:10px; overflow:hidden;
+    }
+
+    /* HUD */
+    .hud-stripe {
+      position:absolute; top:0; left:0; right:0; height:50px; z-index:50;
+      background:rgba(0,0,0,0.97); border-bottom:3px solid var(--pink);
+      display:flex; align-items:center; padding:0 24px; gap:16px;
+    }
+    .hud-title { font-family:'Anton',sans-serif; font-size:18px; font-style:italic; letter-spacing:1px; color:var(--pink); }
+    .hud-crumb { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em; color:rgba(0,255,255,0.4); }
+    .hud-right { margin-left:auto; font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:0.15em; }
+
+    /* ── MAIN LAYOUT ── */
+    .main {
+      position:absolute; top:50px; left:0; right:0; bottom:0;
+      display:flex; align-items:center; justify-content:center;
+      gap:60px; padding:40px 60px;
+    }
+
+    /* ── ID CARD: 600 × 400 ── */
+    .id-card {
+      width:600px; height:400px; flex-shrink:0;
+      position:relative;
+      background:linear-gradient(135deg, #0a041a 0%, #1A0B2E 50%, #0a0015 100%);
+      /* chamfered corners */
+      clip-path:polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+      border:0; overflow:hidden;
+    }
+
+    /* Card border via box-shadow (can't use border with clip-path fully, use pseudo via svg) */
+    .card-border-svg {
+      position:absolute; inset:0; width:100%; height:100%; z-index:10; pointer-events:none;
+    }
+
+    /* BARCODE: left 48px edge */
+    .barcode-strip {
+      position:absolute; left:0; top:0; bottom:0; width:48px;
+      display:flex; align-items:stretch;
+      overflow:hidden; z-index:3;
+    }
+    .barcode-inner {
+      width:100%; height:100%;
+      /* Alternating vertical lines using repeating gradient */
+      background: repeating-linear-gradient(
+        90deg,
+        var(--pink)   0px, var(--pink)   2px,
+        transparent   2px, transparent   4px,
+        var(--pink)   4px, var(--pink)   5px,
+        transparent   5px, transparent   9px,
+        rgba(255,0,127,0.4) 9px, rgba(255,0,127,0.4) 10px,
+        transparent  10px, transparent  14px,
+        var(--pink)  14px, var(--pink)  16px,
+        transparent  16px, transparent  20px,
+        var(--pink)  20px, var(--pink)  21px,
+        transparent  21px, transparent  25px,
+        rgba(255,0,127,0.6) 25px, rgba(255,0,127,0.6) 28px,
+        transparent  28px, transparent  32px,
+        var(--pink)  32px, var(--pink)  34px,
+        transparent  34px, transparent  38px,
+        var(--pink)  38px, var(--pink)  39px,
+        transparent  39px, transparent  44px,
+        var(--pink)  44px, var(--pink)  48px
+      );
+    }
+
+    /* Barcode label at bottom of strip */
+    .barcode-id {
+      position:absolute; bottom:8px; left:0; width:48px;
+      text-align:center;
+      font-size:5px; letter-spacing:0.05em;
+      color:rgba(255,0,127,0.5);
+      writing-mode:vertical-rl; transform:rotate(180deg);
+    }
+
+    /* Card content area (right of barcode) */
+    .card-body {
+      position:absolute; left:48px; top:0; right:0; bottom:0;
+      display:grid;
+      grid-template-columns:1fr 170px;
+      grid-template-rows:1fr;
+      gap:0; z-index:4;
+    }
+
+    /* Left: text fields */
+    .card-fields {
+      padding:24px 20px 20px 20px;
+      display:flex; flex-direction:column; gap:0;
+    }
+
+    /* Red stripe header */
+    .card-header-stripe {
+      background:var(--pink);
+      margin:-24px -20px 0 -20px;
+      padding:8px 20px;
+      margin-bottom:16px;
+      display:flex; align-items:center; gap:12px;
+    }
+    .card-header-brand {
+      font-family:'Anton',sans-serif; font-size:14px; font-style:italic;
+      letter-spacing:2px; color:#fff;
+    }
+    .card-header-type {
+      font-size:8px; letter-spacing:0.4em; color:rgba(255,255,255,0.7);
+    }
+
+    /* Field rows */
+    .field-group {
+      margin-bottom:14px;
+    }
+    .field-label {
+      font-size:7px; letter-spacing:0.4em; color:rgba(255,0,127,0.5);
+      text-transform:uppercase; margin-bottom:4px;
+    }
+    .field-value {
+      font-family:'Anton',sans-serif; font-size:20px; font-style:italic;
+      letter-spacing:0px; color:#fff; line-height:1;
+    }
+    .field-value.green { color:var(--green); }
+    .field-value.cyan { color:var(--cyan); }
+    .field-value.sm { font-size:14px; }
+
+    /* Underline input style fields */
+    .field-underline {
+      padding-bottom:4px;
+      border-bottom:2px solid rgba(255,0,127,0.3);
+      margin-bottom:2px;
+    }
+
+    .fields-row {
+      display:flex; gap:24px;
+    }
+
+    /* Right: avatar + thumbprint */
+    .card-right {
+      border-left:2px solid rgba(255,0,127,0.15);
+      display:flex; flex-direction:column;
+      padding:16px 12px;
+      gap:12px;
+    }
+
+    .avatar-frame {
+      flex:1; position:relative;
+      background:rgba(0,0,0,0.4);
+      clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+      overflow:hidden;
+    }
+
+    /* Scanlines overlay on avatar */
+    .scanlines {
+      position:absolute; inset:0; z-index:2; pointer-events:none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(0,0,0,0.25) 3px,
+        rgba(0,0,0,0.25) 4px
+      );
+    }
+
+    /* Avatar SVG robot head */
+    .avatar-svg-wrap {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    }
+
+    /* Thumbprint block */
+    .thumbprint {
+      height:56px;
+      background:rgba(0,255,255,0.03);
+      border:1px solid rgba(0,255,255,0.15);
+      clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:4px;
+    }
+    .thumbprint-label {
+      font-size:7px; letter-spacing:0.35em; color:rgba(0,255,255,0.4);
+    }
+    .thumbprint-status {
+      font-family:'Anton',sans-serif; font-size:11px; font-style:italic;
+      letter-spacing:2px; color:var(--cyan);
+    }
+
+    /* Holographic shimmer on card (static) */
+    .holo-overlay {
+      position:absolute; inset:0; z-index:5; pointer-events:none;
+      background:linear-gradient(
+        135deg,
+        transparent 20%,
+        rgba(0,255,255,0.03) 30%,
+        rgba(204,255,0,0.02) 40%,
+        transparent 50%,
+        rgba(255,0,127,0.02) 60%,
+        transparent 70%
+      );
+    }
+
+    /* Card security strip at bottom */
+    .card-security {
+      position:absolute; bottom:0; left:48px; right:0; height:20px; z-index:6;
+      background:repeating-linear-gradient(
+        90deg,
+        rgba(0,255,255,0.06) 0px, rgba(0,255,255,0.06) 8px,
+        transparent 8px, transparent 16px
+      );
+      display:flex; align-items:center; padding:0 16px;
+    }
+    .card-security-text {
+      font-size:6px; letter-spacing:0.5em; color:rgba(0,255,255,0.25);
+    }
+
+    /* ── RIGHT SIDE PANEL ── */
+    .right-panel {
+      flex:1; display:flex; flex-direction:column; gap:24px;
+      max-width:480px;
+    }
+
+    .rp-header {
+      font-family:'Anton',sans-serif; font-size:14px; font-style:italic;
+      letter-spacing:0.3em; color:rgba(255,0,127,0.5);
+    }
+
+    /* Edit fields (underline-only) */
+    .edit-section {
+      display:flex; flex-direction:column; gap:20px;
+    }
+
+    .edit-field {
+      position:relative;
+    }
+    .edit-field-label {
+      font-size:8px; letter-spacing:0.35em; color:rgba(255,0,127,0.5);
+      text-transform:uppercase; margin-bottom:6px;
+    }
+    .edit-field-input {
+      width:100%; padding:8px 0;
+      font-family:'Anton',sans-serif; font-size:18px; font-style:italic;
+      color:#fff;
+      background:transparent;
+      border:none; border-bottom:2px solid rgba(255,0,127,0.25);
+      outline:none; letter-spacing:0px;
+      display:flex; align-items:center; gap:4px;
+    }
+    .edit-field-input:hover { border-bottom-color:rgba(255,0,127,0.6); }
+    .edit-cursor {
+      display:inline-block; width:14px; height:20px;
+      background:var(--pink); opacity:0.8; vertical-align:bottom;
+    }
+
+    /* Status tags row */
+    .tags-row {
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .tag {
+      font-size:8px; letter-spacing:0.25em; padding:5px 12px;
+      clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+    .tag.pink { border:1px solid var(--pink); color:var(--pink); }
+    .tag.green { border:1px solid var(--green); color:var(--green); }
+    .tag.cyan { border:1px solid var(--cyan); color:var(--cyan); }
+    .tag.filled-pink { background:var(--pink); color:#000; }
+
+    /* CONFIRM button */
+    .confirm-btn {
+      width:100%; height:60px;
+      background:linear-gradient(135deg, #CC0060 0%, #FF007F 50%, #CC0060 100%);
+      border:none; cursor:pointer;
+      clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 0 40px rgba(255,0,127,0.3);
+      transition:background 0.12s, transform 0.12s, box-shadow 0.12s;
+    }
+    .confirm-btn:hover {
+      background:var(--cyan);
+      transform:translateX(-5px);
+      box-shadow:0 0 60px rgba(0,255,255,0.4);
+    }
+    .confirm-btn:hover .confirm-text { color:#000; }
+    .confirm-text {
+      font-family:'Anton',sans-serif; font-size:24px; font-style:italic;
+      letter-spacing:4px; color:#fff;
+      transition:color 0.12s;
+    }
+
+    /* BG corner decorations */
+    .corner-info {
+      position:absolute; z-index:5;
+      font-family:'Share Tech Mono',monospace; font-size:9px;
+      letter-spacing:0.2em; line-height:1.8;
+    }
+    .ci-tl { top:60px; left:24px; color:rgba(0,255,255,0.25); }
+    .ci-br { bottom:20px; right:24px; color:rgba(204,255,0,0.2); text-align:right; }
+  </style>
+</head>
+<body>
+
+<div class="kata-layer">
+  データ・ログ　ネットワーク　アクセス　システム　マーケット　デジタル<br>
+  エージェント　プロトコル　データ・ログ　ネット　ワーク　アクセス<br>
+  システム　マーケット　デジタル　エージェント　プロトコル<br>
+  データ・ログ　ネットワーク　アクセス　システム　マーケット<br>
+  デジタル　エージェント　プロトコル　データ・ログ
+</div>
+
+<!-- BG SVG grid lines -->
+<svg style="position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <line x1="0" y1="0" x2="1440" y2="900" stroke="#FF007F" stroke-width="1" opacity="0.04"/>
+  <line x1="1440" y1="0" x2="0" y2="900" stroke="#00FFFF" stroke-width="1" opacity="0.03"/>
+  <path d="M0,0 L60,0 M0,0 L0,60" stroke="#00FFFF" stroke-width="2" opacity="0.3"/>
+  <path d="M1440,900 L1380,900 M1440,900 L1440,840" stroke="#CCFF00" stroke-width="2" opacity="0.25"/>
+  <path d="M0,900 L60,900 M0,900 L0,840" stroke="#FF007F" stroke-width="2" opacity="0.25"/>
+  <path d="M1440,0 L1380,0 M1440,0 L1440,60" stroke="#FF007F" stroke-width="2" opacity="0.2"/>
+</svg>
+
+<div class="hud-stripe">
+  <span class="hud-title">AGENT PROFILE</span>
+  <span class="hud-crumb">HOME // REGISTRY // IDENTIFICATION</span>
+  <div class="hud-right">AGENT: R2-ALPHA-01 &nbsp;|&nbsp; BASE NET &nbsp;|&nbsp; BLOCK #27491842</div>
+</div>
+
+<div class="main">
+
+  <!-- ── ID CARD ── -->
+  <div class="id-card">
+    <!-- Chamfered border via SVG -->
+    <svg class="card-border-svg" viewBox="0 0 600 400" preserveAspectRatio="none">
+      <polygon points="0,0 580,0 600,20 600,400 20,400 0,380"
+        fill="none" stroke="#FF007F" stroke-width="3" opacity="0.8"/>
+      <!-- Inner accent line -->
+      <polygon points="4,4 576,4 596,24 596,396 24,396 4,376"
+        fill="none" stroke="rgba(255,0,127,0.2)" stroke-width="1"/>
+    </svg>
+
+    <!-- Barcode strip -->
+    <div class="barcode-strip">
+      <div class="barcode-inner"></div>
+      <div class="barcode-id">R2-ALPHA-01 // 0xCC4F9A // 2047.03.01</div>
+    </div>
+
+    <!-- Card body: fields left, avatar right -->
+    <div class="card-body">
+
+      <div class="card-fields">
+        <div class="card-header-stripe">
+          <span class="card-header-brand">R2 MARKETS</span>
+          <span class="card-header-type">// AGENT IDENTIFICATION CARD</span>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">DESIGNATION</div>
+          <div class="field-value field-underline">R2-ALPHA-01</div>
+        </div>
+
+        <div class="fields-row">
+          <div class="field-group">
+            <div class="field-label">CLEARANCE</div>
+            <div class="field-value cyan sm field-underline">LVL.4 EXEC</div>
+          </div>
+          <div class="field-group">
+            <div class="field-label">CLASS</div>
+            <div class="field-value green sm field-underline">BIDDER MK.II</div>
+          </div>
+        </div>
+
+        <div class="fields-row">
+          <div class="field-group">
+            <div class="field-label">ISSUED</div>
+            <div class="field-value sm field-underline" style="color:rgba(255,255,255,0.6)">2047.03.01</div>
+          </div>
+          <div class="field-group">
+            <div class="field-label">EXPIRES</div>
+            <div class="field-value sm field-underline" style="color:rgba(255,255,255,0.6)">2048.03.01</div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-label">WALLET ADDRESS</div>
+          <div class="field-value sm field-underline" style="color:rgba(0,255,255,0.7); font-size:11px;">0xCC4F9A8B3E1F2D7A</div>
+        </div>
+      </div>
+
+      <div class="card-right">
+        <div class="avatar-frame">
+          <!-- Scanlines overlay -->
+          <div class="scanlines"></div>
+          <div class="avatar-svg-wrap">
+            <svg width="130" height="160" viewBox="0 0 130 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Robot head avatar -->
+              <!-- Background fill -->
+              <rect width="130" height="160" fill="rgba(26,11,46,0.6)"/>
+              <!-- Body -->
+              <rect x="25" y="95" width="80" height="55" fill="rgba(0,255,255,0.05)" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+              <!-- chest details -->
+              <rect x="45" y="105" width="20" height="14" stroke="#FF007F" stroke-width="1" opacity="0.5"/>
+              <rect x="65" y="105" width="20" height="14" stroke="#FF007F" stroke-width="1" opacity="0.5"/>
+              <!-- neck -->
+              <rect x="50" y="82" width="30" height="13" fill="rgba(0,0,0,0.4)" stroke="#00FFFF" stroke-width="0.8" opacity="0.5"/>
+              <!-- Head -->
+              <rect x="22" y="22" width="86" height="60" fill="rgba(0,0,10,0.7)" stroke="#00FFFF" stroke-width="1.5" opacity="0.8"/>
+              <!-- Eyes -->
+              <rect x="34" y="38" width="22" height="10" fill="#FF007F" opacity="0.9"/>
+              <rect x="74" y="38" width="22" height="10" fill="#FF007F" opacity="0.9"/>
+              <!-- inner eye glow -->
+              <rect x="38" y="40" width="14" height="6" fill="#fff" opacity="0.6"/>
+              <rect x="78" y="40" width="14" height="6" fill="#fff" opacity="0.6"/>
+              <!-- Mouth grill -->
+              <line x1="38" y1="60" x2="92" y2="60" stroke="#00FFFF" stroke-width="0.8" opacity="0.5"/>
+              <line x1="38" y1="65" x2="92" y2="65" stroke="#00FFFF" stroke-width="0.8" opacity="0.5"/>
+              <line x1="38" y1="70" x2="92" y2="70" stroke="#00FFFF" stroke-width="0.8" opacity="0.5"/>
+              <!-- Antenna -->
+              <line x1="65" y1="22" x2="65" y2="10" stroke="#CCFF00" stroke-width="2" opacity="0.9"/>
+              <circle cx="65" cy="8" r="4" fill="#CCFF00" opacity="0.9"/>
+              <!-- Head chamfers -->
+              <line x1="22" y1="27" x2="27" y2="22" stroke="#CCFF00" stroke-width="1" opacity="0.6"/>
+              <line x1="108" y1="22" x2="103" y2="27" stroke="#CCFF00" stroke-width="1" opacity="0.6"/>
+              <!-- ALPHA badge on chest -->
+              <text x="65" y="126" fill="#CCFF00" font-size="8" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1" opacity="0.9">ALPHA-01</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="thumbprint">
+          <div class="thumbprint-label">// BIOMETRIC</div>
+          <!-- Mini thumbprint SVG -->
+          <svg width="60" height="20" viewBox="0 0 60 20" fill="none">
+            <ellipse cx="30" cy="10" rx="28" ry="8" stroke="#00FFFF" stroke-width="0.8" opacity="0.4"/>
+            <ellipse cx="30" cy="10" rx="22" ry="6" stroke="#00FFFF" stroke-width="0.8" opacity="0.4"/>
+            <ellipse cx="30" cy="10" rx="16" ry="4" stroke="#00FFFF" stroke-width="0.8" opacity="0.4"/>
+            <ellipse cx="30" cy="10" rx="10" ry="2.5" stroke="#00FFFF" stroke-width="0.8" opacity="0.4"/>
+            <circle cx="30" cy="10" r="2" fill="#00FFFF" opacity="0.6"/>
+          </svg>
+          <div class="thumbprint-status">VERIFIED</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Holographic overlay -->
+    <div class="holo-overlay"></div>
+
+    <!-- Security strip bottom -->
+    <div class="card-security">
+      <span class="card-security-text">R2MARKETS // AGENT CREDENTIAL // CRYPTOGRAPHICALLY SIGNED // DO NOT DUPLICATE</span>
+    </div>
+  </div>
+
+  <!-- ── RIGHT EDIT PANEL ── -->
+  <div class="right-panel">
+    <div class="rp-header">// PROFILE EDIT</div>
+
+    <div class="edit-section">
+
+      <div class="edit-field">
+        <div class="edit-field-label">DISPLAY NAME</div>
+        <div class="edit-field-input">
+          R2-ALPHA-01<span class="edit-cursor"></span>
+        </div>
+      </div>
+
+      <div class="edit-field">
+        <div class="edit-field-label">WALLET LABEL</div>
+        <div class="edit-field-input" style="font-size:14px; color:rgba(0,255,255,0.8);">
+          0xCC4F9A8B3E1F2D7A
+        </div>
+      </div>
+
+      <div class="edit-field">
+        <div class="edit-field-label">NOTIFICATION WEBHOOK</div>
+        <div class="edit-field-input" style="font-size:14px; color:rgba(255,255,255,0.5);">
+          https://hooks.r2.markets/alpha
+        </div>
+      </div>
+
+      <div class="edit-field">
+        <div class="edit-field-label">RISK TIER</div>
+        <div class="tags-row">
+          <div class="tag filled-pink">AGGRESSIVE</div>
+          <div class="tag pink">MODERATE</div>
+          <div class="tag pink">CONSERVATIVE</div>
+        </div>
+      </div>
+
+      <div class="edit-field">
+        <div class="edit-field-label">ACTIVE PROTOCOLS</div>
+        <div class="tags-row">
+          <div class="tag green">SNIPE</div>
+          <div class="tag cyan">SWEEP</div>
+          <div class="tag pink">LEARN</div>
+          <div class="tag pink" style="opacity:0.35;">DUMP</div>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="confirm-btn">
+      <span class="confirm-text">CONFIRM LOADOUT &gt;&gt;</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- Corner info -->
+<div class="corner-info ci-tl">
+  REGISTRY // OPEN<br>
+  SIGN // PENDING<br>
+  VER // 1.0.4
+</div>
+<div class="corner-info ci-br">
+  CREDENTIAL // VALID<br>
+  NEXT RENEW // 365d<br>
+  NET // BASE MAINNET
+</div>
+
+</body>
+</html>

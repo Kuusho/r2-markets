@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: COMBAT HUD</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root { --bg:#000; --pink:#FF007F; --green:#CCFF00; --cyan:#00FFFF; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); width:100vw; height:100vh; overflow:hidden; font-family:'Anton',Impact,sans-serif; position:relative; }
+
+    .kata-layer {
+      position:absolute; inset:0; z-index:1; pointer-events:none;
+      font-family:'Noto Sans JP',sans-serif; font-weight:900; font-size:80px;
+      color:rgba(255,255,255,0.04); line-height:1.1; letter-spacing:-2px;
+      padding:10px; overflow:hidden;
+    }
+
+    /* BG perspective grid SVG */
+    .grid-bg { position:absolute; inset:0; z-index:2; pointer-events:none; }
+
+    /* ── Panel: chamfered corner helper ── */
+    .panel {
+      position:absolute;
+      border: 3px solid;
+      clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+    }
+
+    /* ── LEFT PANEL: Status bars ── */
+    .panel-left {
+      left: 28px; top: 80px;
+      width: 280px; height: 480px;
+      background: rgba(0,0,0,0.85);
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(0,255,255,0.15), inset 0 0 20px rgba(0,0,0,0.8);
+      z-index: 20; padding: 20px 16px;
+    }
+    .panel-label {
+      font-family:'Anton',sans-serif; font-size:13px; font-style:italic; letter-spacing:1px;
+      color:var(--cyan); margin-bottom:18px;
+      border-bottom: 2px solid rgba(0,255,255,0.2); padding-bottom:8px;
+    }
+
+    /* Thick angled status bars (32px tall, skewed) */
+    .status-bar-wrap { margin-bottom:16px; }
+    .bar-label {
+      font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.15em;
+      color:rgba(255,255,255,0.4); margin-bottom:5px; text-transform:uppercase;
+    }
+    .bar-track {
+      height:32px; background:#0a0a0a;
+      border: 2px solid rgba(255,255,255,0.08);
+      transform: skewX(-8deg);
+      overflow:hidden; position:relative;
+    }
+    .bar-fill {
+      height:100%; position:relative;
+      display:flex; align-items:center; padding-left:10px;
+    }
+    .bar-val {
+      font-family:'Anton',sans-serif; font-size:14px; font-style:italic;
+      color:#000; letter-spacing:-0.5px; position:relative; z-index:2;
+    }
+
+    .bar-fill.pink { background:linear-gradient(90deg,#CC0060,#FF007F); }
+    .bar-fill.green { background:linear-gradient(90deg,#88BB00,#CCFF00); }
+    .bar-fill.cyan  { background:linear-gradient(90deg,#008899,#00FFFF); }
+
+    /* ── TOP-RIGHT PANEL: Big numbers ── */
+    .panel-tr {
+      right: 28px; top: 80px;
+      width: 320px; height: 220px;
+      background: rgba(0,0,0,0.85);
+      border-color: var(--pink);
+      box-shadow: 0 0 20px rgba(255,0,127,0.15);
+      z-index: 20; padding:20px;
+    }
+    .big-stat {
+      margin-bottom:16px; position:relative;
+    }
+    .big-num {
+      font-family:'Anton',sans-serif; font-size:72px; font-style:italic;
+      line-height:0.9; letter-spacing:-3px;
+      color:var(--pink);
+      text-shadow: 0 0 20px rgba(255,0,127,0.4);
+    }
+    .big-num.green-num { color:var(--green); text-shadow:0 0 20px rgba(204,255,0,0.4); }
+    .big-label {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.25em;
+      color:rgba(255,255,255,0.3); text-transform:uppercase;
+      position:absolute; bottom:4px; right:0;
+    }
+
+    /* ── MID-RIGHT PANEL: Data feed ── */
+    .panel-mr {
+      right: 28px; top: 318px;
+      width: 320px; height: 240px;
+      background: rgba(0,0,0,0.85);
+      border-color: var(--green);
+      box-shadow: 0 0 20px rgba(204,255,0,0.12);
+      z-index: 20; padding:16px;
+    }
+    .feed-row {
+      display:flex; justify-content:space-between; align-items:flex-end;
+      padding: 7px 0; border-bottom:1px solid rgba(255,255,255,0.06);
+    }
+    .feed-name {
+      font-family:'Anton',sans-serif; font-size:15px; font-style:italic; letter-spacing:-0.5px;
+      color:#fff;
+    }
+    .feed-price { font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:0.1em; }
+    .feed-price.up { color:var(--green); }
+    .feed-price.down { color:var(--pink); }
+    .feed-delta { font-family:'Share Tech Mono',monospace; font-size:9px; }
+    .feed-delta.up { color:rgba(204,255,0,0.6); }
+    .feed-delta.down { color:rgba(255,0,127,0.6); }
+
+    /* ── Bottom-center agent panel ── */
+    .panel-bc {
+      left:50%; bottom:28px; transform:translateX(-50%);
+      width:500px; height:110px;
+      background:rgba(0,0,0,0.9);
+      border-color:var(--pink);
+      box-shadow:0 0 30px rgba(255,0,127,0.2);
+      z-index:20; padding:14px 20px;
+      display:flex; align-items:center; gap:20px;
+    }
+    .agent-avatar {
+      width:72px; height:72px; flex-shrink:0;
+      border:3px solid var(--pink);
+      clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+      background:#0D0520;
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+    }
+    .agent-info { flex:1; }
+    .agent-name {
+      font-family:'Anton',sans-serif; font-size:22px; font-style:italic; letter-spacing:-1px;
+      color:var(--pink); text-shadow:0 0 12px rgba(255,0,127,0.5); line-height:1;
+    }
+    .agent-detail {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em;
+      color:rgba(255,255,255,0.3); margin-top:4px; line-height:1.7;
+    }
+    .agent-pnl {
+      font-family:'Anton',sans-serif; font-size:32px; font-style:italic;
+      color:var(--green); text-shadow:0 0 16px rgba(204,255,0,0.4);
+      letter-spacing:-1px;
+    }
+
+    /* ── CENTER focal negative space: target reticle ── */
+    .center-reticle {
+      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+      z-index:15; pointer-events:none;
+    }
+
+    /* HUD strips */
+    .hud-top {
+      position:absolute; top:0; left:0; right:0; height:60px; z-index:30;
+      background:rgba(0,0,0,0.9);
+      border-bottom: 3px solid var(--pink);
+      display:flex; align-items:center; padding:0 28px; gap:20px;
+    }
+    .hud-title {
+      font-family:'Anton',sans-serif; font-size:20px; font-style:italic; letter-spacing:0;
+      color:var(--pink);
+    }
+    .hud-sep { color:rgba(255,0,127,0.3); font-size:20px; }
+    .hud-sub {
+      font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.2em;
+      color:rgba(0,255,255,0.5);
+    }
+    .hud-right {
+      margin-left:auto; font-family:'Share Tech Mono',monospace; font-size:9px;
+      color:rgba(255,255,255,0.25); letter-spacing:0.15em; text-align:right; line-height:1.8;
+    }
+  </style>
+</head>
+<body>
+
+<div class="kata-layer">
+  データ・ログ　ネットワーク　アクセス　システム　マーケット　デジタル<br>
+  エージェント　プロトコル　データ・ログ　ネット　ワーク　アクセス<br>
+  システム　マーケット　デジタル　エージェント　プロトコル<br>
+  データ・ログ　ネットワーク　アクセス　システム　マーケット<br>
+  デジタル　エージェント　プロトコル　データ・ログ
+</div>
+
+<!-- BG perspective grid -->
+<svg class="grid-bg" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="gridFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00FFFF" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#00FFFF" stop-opacity="0.03"/>
+    </linearGradient>
+  </defs>
+  <!-- Horizontal grid lines (3D perspective, converging) -->
+  <line x1="0" y1="500" x2="1440" y2="500" stroke="#00FFFF" stroke-width="2" opacity="0.4"/>
+  <line x1="0" y1="560" x2="1440" y2="560" stroke="#00FFFF" stroke-width="1.5" opacity="0.3"/>
+  <line x1="0" y1="610" x2="1440" y2="610" stroke="#00FFFF" stroke-width="1" opacity="0.22"/>
+  <line x1="0" y1="652" x2="1440" y2="652" stroke="#00FFFF" stroke-width="1" opacity="0.16"/>
+  <line x1="0" y1="687" x2="1440" y2="687" stroke="#00FFFF" stroke-width="0.5" opacity="0.12"/>
+  <line x1="0" y1="717" x2="1440" y2="717" stroke="#00FFFF" stroke-width="0.5" opacity="0.09"/>
+  <line x1="0" y1="743" x2="1440" y2="743" stroke="#00FFFF" stroke-width="0.5" opacity="0.07"/>
+  <line x1="0" y1="766" x2="1440" y2="766" stroke="#00FFFF" stroke-width="0.5" opacity="0.05"/>
+  <line x1="0" y1="786" x2="1440" y2="786" stroke="#00FFFF" stroke-width="0.5" opacity="0.04"/>
+  <!-- Vertical converging lines (vanishing point 720, 500) -->
+  <line x1="720" y1="500" x2="0" y2="900"   stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="160" y2="900"  stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="320" y2="900"  stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="480" y2="900"  stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="640" y2="900"  stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="720" y2="900"  stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="800" y2="900"  stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="960" y2="900"  stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="1120" y2="900" stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="1280" y2="900" stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="500" x2="1440" y2="900" stroke="#00FFFF" stroke-width="0.5" opacity="0.3"/>
+  <!-- Top-area horizontal accent -->
+  <line x1="0" y1="60" x2="1440" y2="60" stroke="#FF007F" stroke-width="3" opacity="0.8"/>
+  <!-- Diagonal slash accents -->
+  <line x1="0" y1="200" x2="400" y2="60"   stroke="#FF007F" stroke-width="2" opacity="0.15"/>
+  <line x1="1440" y1="200" x2="1040" y2="60" stroke="#CCFF00" stroke-width="2" opacity="0.12"/>
+</svg>
+
+<!-- HUD Top -->
+<div class="hud-top">
+  <span class="hud-title">COMBAT HUD</span>
+  <span class="hud-sep">//</span>
+  <span class="hud-sub">LIVE MARKET FEED — BASE NETWORK — 7 NODES TRACKED</span>
+  <div class="hud-right">
+    AGENT: R2-ALPHA-01<br>
+    BLOCK: #27491842
+  </div>
+</div>
+
+<!-- Left status bars panel -->
+<div class="panel panel-left">
+  <div class="panel-label">// MARKET STATUS</div>
+
+  <div class="status-bar-wrap">
+    <div class="bar-label">MECHDROID — FLOOR HEALTH</div>
+    <div class="bar-track">
+      <div class="bar-fill pink" style="width:78%;">
+        <span class="bar-val">78%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar-wrap">
+    <div class="bar-label">VOLUME ACTIVITY</div>
+    <div class="bar-track">
+      <div class="bar-fill green" style="width:62%;">
+        <span class="bar-val">62%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar-wrap">
+    <div class="bar-label">LIQUIDITY INDEX</div>
+    <div class="bar-track">
+      <div class="bar-fill cyan" style="width:45%;">
+        <span class="bar-val">45%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar-wrap">
+    <div class="bar-label">SNIPE SUCCESS RATE</div>
+    <div class="bar-track">
+      <div class="bar-fill green" style="width:91%;">
+        <span class="bar-val">91%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar-wrap">
+    <div class="bar-label">AGENT UPTIME</div>
+    <div class="bar-track">
+      <div class="bar-fill pink" style="width:99%;">
+        <span class="bar-val">99%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar-wrap">
+    <div class="bar-label">GAS EFFICIENCY</div>
+    <div class="bar-track">
+      <div class="bar-fill cyan" style="width:88%;">
+        <span class="bar-val">88%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Top-right big numbers panel -->
+<div class="panel panel-tr">
+  <div style="display:flex; gap:40px; height:100%;">
+    <div class="big-stat">
+      <div class="big-num">0.48</div>
+      <div class="big-label">FLOOR PRICE Ξ</div>
+    </div>
+    <div class="big-stat" style="margin-top:auto;">
+      <div class="big-num green-num" style="font-size:52px;">12.4</div>
+      <div class="big-label">VOL 24H Ξ</div>
+    </div>
+  </div>
+</div>
+
+<!-- Mid-right data feed panel -->
+<div class="panel panel-mr">
+  <div class="panel-label" style="color:var(--green);border-bottom-color:rgba(204,255,0,0.2);">// COLLECTION FEED</div>
+  <div class="feed-row">
+    <span class="feed-name">MECHDROID</span>
+    <span class="feed-price up">Ξ 0.48</span>
+    <span class="feed-delta up">▲ +2.1%</span>
+  </div>
+  <div class="feed-row">
+    <span class="feed-name">VOIDBOTS</span>
+    <span class="feed-price up">Ξ 0.22</span>
+    <span class="feed-delta up">▲ +0.8%</span>
+  </div>
+  <div class="feed-row">
+    <span class="feed-name">STARFORGE</span>
+    <span class="feed-price down">Ξ 0.09</span>
+    <span class="feed-delta down">▼ -14.2%</span>
+  </div>
+  <div class="feed-row">
+    <span class="feed-name">CRYPTOWRAITH</span>
+    <span class="feed-price up">Ξ 0.31</span>
+    <span class="feed-delta up">▲ +1.4%</span>
+  </div>
+</div>
+
+<!-- Center reticle (negative space focal point) -->
+<div class="center-reticle">
+  <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="100" cy="100" r="60" fill="none" stroke="#FF007F" stroke-width="2" opacity="0.4"/>
+    <circle cx="100" cy="100" r="40" fill="none" stroke="#00FFFF" stroke-width="1" opacity="0.3" stroke-dasharray="6,4"/>
+    <circle cx="100" cy="100" r="8" fill="none" stroke="#CCFF00" stroke-width="2" opacity="0.8"/>
+    <circle cx="100" cy="100" r="3" fill="#FF007F"/>
+    <line x1="100" y1="30" x2="100" y2="55" stroke="#FF007F" stroke-width="2" opacity="0.6"/>
+    <line x1="100" y1="145" x2="100" y2="170" stroke="#FF007F" stroke-width="2" opacity="0.6"/>
+    <line x1="30" y1="100" x2="55" y2="100" stroke="#FF007F" stroke-width="2" opacity="0.6"/>
+    <line x1="145" y1="100" x2="170" y2="100" stroke="#FF007F" stroke-width="2" opacity="0.6"/>
+    <text x="112" y="86" font-family="monospace" font-size="8" fill="#CCFF00" opacity="0.8">TARGET</text>
+    <text x="112" y="97" font-family="monospace" font-size="8" fill="#00FFFF" opacity="0.8">LOCKED</text>
+  </svg>
+</div>
+
+<!-- Bottom-center agent panel -->
+<div class="panel panel-bc">
+  <div class="agent-avatar">
+    <svg width="66" height="66" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+      <rect width="66" height="66" fill="#0D0520"/>
+      <rect x="10" y="6" width="46" height="54" fill="#808080" stroke="#FF007F" stroke-width="0.5"/>
+      <ellipse cx="33" cy="18" rx="16" ry="6" fill="#A0A0A0"/>
+      <ellipse cx="33" cy="15" rx="7" ry="5" fill="#FF007F" opacity="0.9"/>
+      <circle cx="33" cy="15" r="3" fill="#000"/>
+      <rect x="14" y="28" width="38" height="22" fill="#1A0B2E"/>
+      <rect x="18" y="33" width="10" height="7" fill="#FF007F"/>
+      <rect x="32" y="33" width="10" height="7" fill="#CCFF00" opacity="0.7"/>
+      <text x="33" y="62" text-anchor="middle" font-family="monospace" font-size="6" fill="#FF007F">R2-A-01</text>
+    </svg>
+  </div>
+  <div class="agent-info">
+    <div class="agent-name">R2-ALPHA-01</div>
+    <div class="agent-detail">
+      STRATEGY: FLOOR SNIPER + TRAIT ARB &nbsp;|&nbsp; TRADES: 14 &nbsp;|&nbsp; WIN: 78.5%
+    </div>
+  </div>
+  <div class="agent-pnl">+Ξ0.012</div>
+</div>
+
+</body>
+</html>

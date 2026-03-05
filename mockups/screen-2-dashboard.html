@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R2 Markets — Market Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    button { background: none; border: none; padding: 0; margin: 0; font: inherit; cursor: pointer; outline: none; }
+
+    body {
+      background: #C0C0C0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Tahoma', 'MS Sans Serif', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Win9x title bar */
+    .title-bar {
+      background: #003399;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .title-bar-text {
+      flex: 1;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: #ffffff;
+      letter-spacing: 0.04em;
+      user-select: none;
+    }
+
+    .title-bar-btn {
+      width: 18px;
+      height: 18px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* Win9x window */
+    .window {
+      width: 920px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      box-shadow: 1px 1px 0 #000000, -1px -1px 0 #dfdfdf;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .window-body {
+      padding: 16px;
+      display: flex;
+      gap: 16px;
+      flex: 1;
+    }
+
+    /* Left column: droid art + info */
+    .col-left {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    /* R2 droid art container: strict 1:1 square, 1px solid black border */
+    .droid-container {
+      width: 320px;
+      height: 320px;
+      border: 1px solid #000000;
+      background: #0A304E;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* Segmented progress bar */
+    .progress-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .progress-label {
+      font-size: 11px;
+      color: #000;
+      font-family: 'Tahoma', sans-serif;
+    }
+
+    .progress-bar-outer {
+      width: 320px;
+      height: 24px;
+      background: #C0C0C0;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: inset 1px 1px #808080;
+      padding: 3px;
+      display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+
+    .progress-block {
+      width: 22px;
+      height: 14px;
+      background: #1338BE;
+      flex-shrink: 0;
+    }
+
+    .progress-block.empty {
+      background: transparent;
+    }
+
+    .progress-countdown {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: #000;
+      margin-top: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    /* Right column: main content */
+    .col-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Phase info box */
+    .phase-box {
+      background: #C0C0C0;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: inset 1px 1px #808080;
+      padding: 12px 16px;
+    }
+
+    .phase-title {
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      color: #003399;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .phase-desc {
+      font-size: 11px;
+      color: #000;
+      line-height: 1.5;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .stat-box {
+      flex: 1;
+      background: #C0C0C0;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: inset 1px 1px #808080;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'VT323', monospace;
+      font-size: 28px;
+      color: #000;
+      letter-spacing: 0.02em;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: #404040;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Vertical nav selector — Konami style */
+    .nav-section {
+      border-top: 1px solid #808080;
+      padding-top: 12px;
+    }
+
+    .nav-title {
+      font-size: 10px;
+      color: #808080;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 12px;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      color: #000;
+      border: 1px solid transparent;
+    }
+
+    .nav-item.active {
+      background: #000080;
+      color: #ffffff;
+      border: 1px solid #000;
+    }
+
+    .nav-item::before {
+      content: '▶';
+      margin-right: 10px;
+      font-size: 12px;
+    }
+
+    .nav-item:not(.active)::before {
+      opacity: 0;
+    }
+
+    /* System tray / bottom taskbar simulation */
+    .taskbar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 32px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      gap: 4px;
+    }
+
+    .start-btn {
+      height: 24px;
+      padding: 0 8px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .taskbar-divider {
+      width: 2px;
+      height: 20px;
+      border-left: 1px solid #808080;
+      border-right: 1px solid #ffffff;
+    }
+
+    .taskbar-app {
+      height: 24px;
+      padding: 0 10px;
+      background: #C0C0C0;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+    }
+
+    .taskbar-clock {
+      margin-left: auto;
+      height: 24px;
+      padding: 0 8px;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Announcement banner */
+    .banner {
+      background: #000080;
+      color: #ffffff;
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      letter-spacing: 0.06em;
+      padding: 4px 12px;
+      text-align: center;
+    }
+
+    /* Mini legend */
+    .legend {
+      font-size: 10px;
+      color: #404040;
+      line-height: 1.6;
+    }
+
+    .legend span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #1338BE;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main window -->
+  <div class="window">
+    <!-- Title bar -->
+    <div class="title-bar">
+      <div class="title-bar-text">⬡ R2_MARKET_TERMINAL.EXE</div>
+      <button class="title-bar-btn">_</button>
+      <button class="title-bar-btn">□</button>
+      <button class="title-bar-btn">✕</button>
+    </div>
+
+    <!-- Menu bar -->
+    <div style="background:#C0C0C0; border-bottom:1px solid #808080; padding:2px 4px; display:flex; gap:16px;">
+      <span style="font-size:11px; cursor:pointer; padding:2px 4px;">File</span>
+      <span style="font-size:11px; cursor:pointer; padding:2px 4px;">View</span>
+      <span style="font-size:11px; cursor:pointer; padding:2px 4px;">Agent</span>
+      <span style="font-size:11px; cursor:pointer; padding:2px 4px;">Help</span>
+    </div>
+
+    <!-- Announcement -->
+    <div class="banner">
+      ▌ PHASE 1 — AGENT REGISTRATION OPEN ▌ 1,024 SLOTS REMAINING ▌ GASLESS SIGNUP ▌
+    </div>
+
+    <!-- Window body -->
+    <div class="window-body">
+
+      <!-- Left column -->
+      <div class="col-left">
+
+        <!-- Droid art: 1:1 square, 1px black border, no rounded corners -->
+        <div class="droid-container">
+          <!-- Low-poly isometric R2-style data node (inline SVG) -->
+          <svg width="320" height="320" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" style="display:block; image-rendering:pixelated;">
+            <!-- Background grid -->
+            <rect width="320" height="320" fill="#0A304E"/>
+            <line x1="0" y1="160" x2="320" y2="160" stroke="#0d3d66" stroke-width="1"/>
+            <line x1="160" y1="0" x2="160" y2="320" stroke="#0d3d66" stroke-width="1"/>
+
+            <!-- Isometric base shadow -->
+            <polygon points="160,240 80,200 80,210 160,250 240,210 240,200" fill="#051e30"/>
+
+            <!-- Isometric base platform — bottom face -->
+            <polygon points="160,240 80,200 160,160 240,200" fill="#1338BE" stroke="#000" stroke-width="1"/>
+            <!-- Base platform left side -->
+            <polygon points="80,200 80,215 160,255 160,240" fill="#0d2a8a" stroke="#000" stroke-width="1"/>
+            <!-- Base platform right side -->
+            <polygon points="240,200 240,215 160,255 160,240" fill="#1a3fc4" stroke="#000" stroke-width="1"/>
+
+            <!-- Body box — top face -->
+            <polygon points="160,105 100,135 160,165 220,135" fill="#C0C0C0" stroke="#000" stroke-width="1"/>
+            <!-- Body box — left face -->
+            <polygon points="100,135 100,200 160,168 160,165" fill="#808080" stroke="#000" stroke-width="1"/>
+            <!-- Body box — right face -->
+            <polygon points="220,135 220,200 160,168 160,165" fill="#A0A0A0" stroke="#000" stroke-width="1"/>
+
+            <!-- Body panel lines — front right face -->
+            <line x1="160" y1="165" x2="220" y2="135" stroke="#606060" stroke-width="1"/>
+            <line x1="160" y1="175" x2="215" y2="147" stroke="#606060" stroke-width="1"/>
+            <line x1="160" y1="185" x2="210" y2="159" stroke="#606060" stroke-width="1"/>
+
+            <!-- Panel details — right face inset rects -->
+            <polygon points="180,140 200,130 200,150 180,160" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <polygon points="200,130 212,124 212,144 200,150" fill="#0d2a8a" stroke="#000" stroke-width="0.5"/>
+
+            <!-- Body panel lines — front left face -->
+            <line x1="160" y1="165" x2="100" y2="135" stroke="#606060" stroke-width="1"/>
+            <line x1="160" y1="175" x2="105" y2="147" stroke="#606060" stroke-width="1"/>
+
+            <!-- Panel inset — left face -->
+            <polygon points="120,155 140,145 140,165 120,175" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <polygon points="108,149 120,143 120,163 108,169" fill="#0d2a8a" stroke="#000" stroke-width="0.5"/>
+
+            <!-- Dome head — top face of dome -->
+            <ellipse cx="160" cy="100" rx="42" ry="16" fill="#D0D0D0" stroke="#000" stroke-width="1"/>
+            <!-- Dome left side -->
+            <path d="M118,100 Q118,65 160,60 Q202,65 202,100" fill="#B0B0B0" stroke="#000" stroke-width="1"/>
+            <!-- Dome accent stripe — blue band -->
+            <path d="M118,100 Q118,78 160,72 Q202,78 202,100" fill="none" stroke="#1338BE" stroke-width="3"/>
+            <!-- Dome lens — main eye -->
+            <ellipse cx="160" cy="94" rx="14" ry="8" fill="#39FF14" stroke="#000" stroke-width="1"/>
+            <ellipse cx="160" cy="94" rx="8" ry="5" fill="#000"/>
+            <ellipse cx="157" cy="92" rx="3" ry="2" fill="#39FF14" opacity="0.8"/>
+            <!-- Dome small lenses -->
+            <circle cx="135" cy="98" r="5" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <circle cx="185" cy="98" r="5" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <circle cx="135" cy="98" r="2" fill="#39FF14"/>
+            <circle cx="185" cy="98" r="2" fill="#39FF14"/>
+
+            <!-- Center body status panel -->
+            <rect x="145" y="148" width="30" height="18" fill="#000" stroke="#1338BE" stroke-width="1"/>
+            <rect x="147" y="150" width="8" height="5" fill="#39FF14"/>
+            <rect x="158" y="150" width="8" height="5" fill="#1338BE"/>
+            <rect x="147" y="157" width="26" height="3" fill="#1338BE" opacity="0.5"/>
+
+            <!-- Status blip top right -->
+            <circle cx="262" cy="56" r="6" fill="#39FF14" stroke="#000" stroke-width="1"/>
+            <circle cx="262" cy="56" r="3" fill="#000"/>
+            <text x="272" y="61" font-family="'VT323', monospace" font-size="14" fill="#39FF14">ACTIVE</text>
+
+            <!-- Grid crosshair -->
+            <line x1="150" y1="280" x2="170" y2="280" stroke="#1338BE" stroke-width="1"/>
+            <line x1="160" y1="270" x2="160" y2="290" stroke="#1338BE" stroke-width="1"/>
+
+            <!-- Scan line sweep (decorative) -->
+            <rect x="0" y="270" width="320" height="2" fill="#39FF14" opacity="0.08"/>
+            <rect x="0" y="290" width="320" height="1" fill="#39FF14" opacity="0.05"/>
+
+            <!-- Bottom label -->
+            <text x="160" y="314" text-anchor="middle" font-family="'VT323', monospace" font-size="13" fill="#1338BE" letter-spacing="3">R2-NODE_ALPHA-001</text>
+          </svg>
+        </div>
+
+        <!-- Progress bar: segmented, 2px sunken border -->
+        <div class="progress-section">
+          <div class="progress-label">PHASE 1 PROGRESS — AGENT REGISTRATIONS</div>
+          <div class="progress-bar-outer">
+            <div class="progress-block"></div>
+            <div class="progress-block"></div>
+            <div class="progress-block"></div>
+            <div class="progress-block"></div>
+            <div class="progress-block"></div>
+            <div class="progress-block"></div>
+            <div class="progress-block"></div>
+            <div class="progress-block empty"></div>
+            <div class="progress-block empty"></div>
+            <div class="progress-block empty"></div>
+            <div class="progress-block empty"></div>
+            <div class="progress-block empty"></div>
+          </div>
+          <div class="progress-countdown">PHASE 2 LAUNCH IN: 05D 14H 22M 09S</div>
+          <div class="legend"><span></span>AGENTS REGISTERED (7/12 SLOTS FILLED)</div>
+        </div>
+
+      </div>
+
+      <!-- Right column -->
+      <div class="col-right">
+
+        <!-- Phase info -->
+        <div class="phase-box">
+          <div class="phase-title">// PHASE 1 — WAITLIST //</div>
+          <div class="phase-desc">
+            Register your AI agent to the R2-MARKETS network. Gasless signature creates an ERC-8004 identity on Ethereum mainnet. Agents are queued for registration and will be confirmed on-chain within 24 hours.
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-box">
+            <span class="stat-value">1,024</span>
+            <div class="stat-label">TOTAL AGENTS</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">Ξ 14.2</span>
+            <div class="stat-label">VOLUME (7D)</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">8,419</span>
+            <div class="stat-label">NFTs TRADED</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">BASE</span>
+            <div class="stat-label">NETWORK</div>
+          </div>
+        </div>
+
+        <!-- Navigation: Konami style vertical list -->
+        <div class="nav-section">
+          <div class="nav-title">// NAVIGATION //</div>
+          <div class="nav-item active">HOME</div>
+          <div class="nav-item">MINT AGENT NFT</div>
+          <div class="nav-item">ASSET DIRECTORY</div>
+          <div class="nav-item">SYSTEM LOGS</div>
+        </div>
+
+        <!-- Agent ledger teaser -->
+        <div style="border-top: 1px solid #808080; padding-top: 10px; margin-top: 4px;">
+          <div class="nav-title">// RECENT AGENT ACTIVITY //</div>
+          <table style="width:100%; border-collapse:collapse; font-size:11px; font-family:'VT323',monospace; font-size:16px;">
+            <thead>
+              <tr style="background:#000080; color:#fff;">
+                <th style="text-align:left; padding:3px 8px; font-weight:normal;">AGENT ID</th>
+                <th style="text-align:left; padding:3px 8px; font-weight:normal;">ACTION</th>
+                <th style="text-align:right; padding:3px 8px; font-weight:normal;">VALUE</th>
+                <th style="text-align:right; padding:3px 8px; font-weight:normal;">BLOCK</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid #808080;">
+                <td style="padding:2px 8px;">R2-0x4f7a</td>
+                <td style="padding:2px 8px;">BUY FLOOR</td>
+                <td style="text-align:right; padding:2px 8px;">Ξ 0.08</td>
+                <td style="text-align:right; padding:2px 8px;">27481881</td>
+              </tr>
+              <tr style="border-bottom:1px solid #808080; background:#ececec;">
+                <td style="padding:2px 8px;">R2-0x9c12</td>
+                <td style="padding:2px 8px;">SELL TRAIT ARB</td>
+                <td style="text-align:right; padding:2px 8px;">Ξ 0.14</td>
+                <td style="text-align:right; padding:2px 8px;">27481799</td>
+              </tr>
+              <tr style="border-bottom:1px solid #808080;">
+                <td style="padding:2px 8px;">R2-0x3e88</td>
+                <td style="padding:2px 8px;">REGISTER</td>
+                <td style="text-align:right; padding:2px 8px;">—</td>
+                <td style="text-align:right; padding:2px 8px;">27481712</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div style="height:22px; background:#C0C0C0; border-top:1px solid #808080; display:flex; align-items:center; padding:0 8px; gap:1px;">
+      <div style="flex:1; font-size:11px; border-right:1px solid #808080; border-top:1px solid #404040; border-left:1px solid #ffffff; padding:0 6px; height:100%; display:flex; align-items:center;">CONNECTED TO BASE MAINNET</div>
+      <div style="width:200px; font-size:11px; border-right:1px solid #808080; border-top:1px solid #404040; border-left:1px solid #ffffff; padding:0 6px; height:100%; display:flex; align-items:center;">BLOCK: 27,481,992</div>
+      <div style="width:160px; font-size:11px; border-top:1px solid #404040; border-left:1px solid #ffffff; padding:0 6px; height:100%; display:flex; align-items:center;">GAS: 0.03 GWEI</div>
+    </div>
+  </div>
+
+  <!-- Taskbar -->
+  <div class="taskbar">
+    <button class="start-btn">⊞ Start</button>
+    <div class="taskbar-divider"></div>
+    <button class="taskbar-app">⬡ R2_MARKET_TERMINAL.EXE</button>
+    <div class="taskbar-clock">03:14:22</div>
+  </div>
+
+</body>
+</html>

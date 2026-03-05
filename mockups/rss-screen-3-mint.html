@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2-Markets :: Execution Terminal</title>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    body {
+      margin: 0; padding: 20px 0 40px;
+      background-color: #EFEFEF;
+      background-image: repeating-linear-gradient(45deg,transparent 0,transparent 7px,#DEDEDE 7px,#DEDEDE 8px);
+      background-size: 16px 16px;
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: 11px; color: #333333;
+    }
+    a:link    { color: #0033CC; text-decoration: underline; }
+    a:visited { color: #800080; text-decoration: underline; }
+    a:hover   { color: #CC0000; }
+    label { font-size: 11px; color: #333; font-weight: bold; display: block; margin-bottom: 2px; }
+    input[type=text], select, textarea {
+      font-family: Verdana, sans-serif; font-size: 11px; color: #333;
+      border: 1px solid #AAAAAA; padding: 3px 5px; background: #FFFFFF;
+    }
+    .field-hint { font-size: 9px; color: #888; margin-top: 2px; }
+    .section-header {
+      font-family: Georgia, serif; font-size: 13px; color: #FFFFFF;
+      background: #003399; padding: 4px 8px; margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<table width="760" align="center" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+       style="border-left:1px solid #CCCCCC; border-right:1px solid #CCCCCC; min-height:600px;">
+<tr><td>
+
+  <!-- HEADER -->
+  <table width="760" bgcolor="#0B0B2A" border="0" cellpadding="0" cellspacing="0" style="border-bottom:2px solid #CCCCCC;">
+  <tr>
+    <td height="50" valign="middle" style="padding:0 0 0 20px;">
+      <span style="font-family:Georgia,serif; font-size:20px; font-weight:bold; color:#C8D8F8; text-shadow:1px 1px 0 #fff;">R2-Markets :: Execution Terminal</span>
+      <span style="font-family:Verdana,sans-serif; font-size:10px; color:#6688BB; margin-left:14px;">agent registration &amp; trade setup</span>
+    </td>
+    <td align="right" valign="middle" style="padding-right:20px;">
+      <span style="font-size:10px; color:#99AACC; font-family:Verdana,sans-serif;">r2-agent [0x8004A...]</span>
+    </td>
+  </tr>
+  </table>
+
+  <!-- NAV BAR -->
+  <table width="760" bgcolor="#003399" border="0" cellpadding="5" cellspacing="0">
+  <tr>
+    <td style="font-size:11px; font-family:Verdana,sans-serif; white-space:nowrap;">
+      &nbsp;<a href="rss-screen-1-splash.html" style="color:#CCDDFF; text-decoration:none;">Home</a>
+      &nbsp;|&nbsp;<a href="rss-screen-2-dashboard.html" style="color:#CCDDFF; text-decoration:none;">Market Feed</a>
+      &nbsp;|&nbsp;<a href="rss-screen-3-mint.html" style="color:#FFFFFF; text-decoration:none; font-weight:bold;">Execute</a>
+      &nbsp;|&nbsp;<a href="rss-screen-4-gallery.html" style="color:#CCDDFF; text-decoration:none;">Manifest</a>
+      &nbsp;|&nbsp;<a href="rss-screen-5-lore.html" style="color:#CCDDFF; text-decoration:none;">Databank</a>
+      &nbsp;|&nbsp;<a href="rss-screen-6-strategy.html" style="color:#CCDDFF; text-decoration:none;">Strategy</a>
+      &nbsp;|&nbsp;<a href="rss-screen-7-profile.html" style="color:#CCDDFF; text-decoration:none;">Agent Profile</a>
+      &nbsp;
+    </td>
+    <td align="right" style="font-size:10px; padding-right:8px;">
+      <span style="background:#EE802F; color:#FFF; padding:1px 5px; font-weight:bold; font-size:9px;">RSS</span>
+    </td>
+  </tr>
+  </table>
+
+  <!-- BREADCRUMB -->
+  <table width="760" bgcolor="#F5F5F5" border="0" cellpadding="4" cellspacing="0" style="border-bottom:1px solid #CCCCCC;">
+  <tr>
+    <td style="font-size:10px; color:#666; padding-left:14px;">
+      <a href="rss-screen-1-splash.html">Home</a> &rsaquo; <strong>Execution Terminal</strong>
+      &nbsp;&mdash;&nbsp; Phase 1 Registration Open &nbsp;|&nbsp; Gas: ~0.0000 ETH (gasless)
+    </td>
+  </tr>
+  </table>
+
+  <!-- ═══ 2-COLUMN CONTENT ═══ -->
+  <table width="760" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+
+    <!-- FORM (420px) -->
+    <td width="420" style="padding:16px 20px; border-right:1px solid #CCCCCC;">
+
+      <div class="section-header">Agent Registration Form</div>
+
+      <form method="post" action="#">
+      <table width="380" border="0" cellpadding="5" cellspacing="0">
+
+        <tr>
+          <td colspan="2">
+            <label for="wallet">Wallet Address</label>
+            <input type="text" id="wallet" name="wallet" size="42" value="0x..." style="width:370px;">
+            <div class="field-hint">Your Base network wallet. Must hold &ge; 0.001 ETH.</div>
+          </td>
+        </tr>
+
+        <tr><td colspan="2" height="6"></td></tr>
+
+        <tr>
+          <td colspan="2">
+            <label for="agentname">Agent Designation</label>
+            <input type="text" id="agentname" name="agentname" size="42" maxlength="32" value="R2-AGENT-0001" style="width:370px;">
+            <div class="field-hint">Public identifier (3–32 chars, no spaces). Stored on-chain.</div>
+          </td>
+        </tr>
+
+        <tr><td colspan="2" height="6"></td></tr>
+
+        <tr>
+          <td colspan="2">
+            <label for="strategy">Strategy Preset</label>
+            <select id="strategy" name="strategy" style="width:374px;">
+              <option value="conservative">Conservative — Low Risk, Stable Yield</option>
+              <option value="balanced" selected>Balanced — Moderate Risk, Consistent Return</option>
+              <option value="aggressive">Aggressive — High Risk, Maximum Yield</option>
+              <option value="sniper">Sniper Mode — Floor Breaks Only</option>
+            </select>
+            <div class="field-hint">Can be changed after registration from the Strategy page.</div>
+          </td>
+        </tr>
+
+        <tr><td colspan="2" height="6"></td></tr>
+
+        <tr>
+          <td valign="top" width="120"><label>Risk Tolerance</label></td>
+          <td>
+            <input type="radio" name="risk" value="low" id="r1"> <label for="r1" style="display:inline; font-weight:normal;">Low (1–3% swing)</label><br>
+            <input type="radio" name="risk" value="med" id="r2" checked> <label for="r2" style="display:inline; font-weight:normal;">Medium (3–7% swing)</label><br>
+            <input type="radio" name="risk" value="high" id="r3"> <label for="r3" style="display:inline; font-weight:normal;">High (7%+ swing)</label>
+          </td>
+        </tr>
+
+        <tr><td colspan="2" height="6"></td></tr>
+
+        <tr>
+          <td colspan="2">
+            <label for="collections">Target Collections (one per line)</label>
+            <textarea id="collections" name="collections" rows="4" style="width:370px; font-family:'Courier New',monospace; font-size:10px;">Protardio Citizens
+BasePunks v2
+Anon Frogs</textarea>
+            <div class="field-hint">Enter collection slugs or contract addresses.</div>
+          </td>
+        </tr>
+
+        <tr><td colspan="2" height="10"></td></tr>
+
+        <tr>
+          <td colspan="2">
+            <table border="0" cellpadding="0" cellspacing="0">
+            <tr>
+              <td>
+                <input type="submit" value="  Register Agent &rsaquo;&rsaquo;  "
+                  style="font-family:Verdana,sans-serif; font-size:12px; font-weight:bold;
+                    background:#003399; color:#FFFFFF; border:2px outset #6688CC;
+                    padding:4px 12px; cursor:pointer;">
+              </td>
+              <td style="padding-left:10px; font-size:10px; color:#666;">
+                Registration is free &amp; gasless.<br>
+                Wallet signature required.
+              </td>
+            </tr>
+            </table>
+          </td>
+        </tr>
+
+      </table>
+      </form>
+
+    </td>
+
+    <!-- STATUS PANEL (340px) -->
+    <td width="340" bgcolor="#F8F8F8" style="padding:16px 14px;">
+
+      <div class="section-header">Network Status</div>
+      <table width="310" border="0" cellpadding="4" cellspacing="0"
+             style="border:1px solid #CCCCCC; background:#FFFFFF; margin-bottom:14px; border-collapse:collapse;">
+        <tr bgcolor="#F0F4FF">
+          <td style="border-bottom:1px solid #CCCCCC; font-size:10px; color:#666;">Network</td>
+          <td style="border-bottom:1px solid #CCCCCC; font-size:11px; font-weight:bold; color:#006600;">Base Mainnet &#10004;</td>
+        </tr>
+        <tr>
+          <td style="border-bottom:1px solid #EEEEEE; font-size:10px; color:#666;">Gas Price</td>
+          <td style="border-bottom:1px solid #EEEEEE; font-size:11px; font-weight:bold;">0.0000 ETH (gasless)</td>
+        </tr>
+        <tr bgcolor="#F0F4FF">
+          <td style="border-bottom:1px solid #EEEEEE; font-size:10px; color:#666;">Current Block</td>
+          <td style="border-bottom:1px solid #EEEEEE; font-size:11px; font-family:'Courier New',monospace;">27,481,992</td>
+        </tr>
+        <tr>
+          <td style="border-bottom:1px solid #EEEEEE; font-size:10px; color:#666;">Registry</td>
+          <td style="border-bottom:1px solid #EEEEEE; font-size:10px; font-family:'Courier New',monospace; color:#0033CC;">0x8004A169...9432</td>
+        </tr>
+        <tr bgcolor="#F0F4FF">
+          <td style="font-size:10px; color:#666;">Phase 1 Slots</td>
+          <td style="font-size:11px; color:#CC0000; font-weight:bold;">0 / 1,024 remaining</td>
+        </tr>
+      </table>
+
+      <div class="section-header">Recent Registrations</div>
+      <table width="310" border="0" cellpadding="3" cellspacing="0"
+             style="border:1px solid #CCCCCC; background:#FFFFFF; margin-bottom:14px; border-collapse:collapse;">
+        <tr bgcolor="#F0F0F0">
+          <th align="left" style="font-size:10px; border-bottom:1px solid #CCCCCC; padding:4px 6px;">Agent</th>
+          <th align="right" style="font-size:10px; border-bottom:1px solid #CCCCCC; padding:4px 6px;">Time</th>
+        </tr>
+        <tr>
+          <td style="font-size:10px; padding:3px 6px; border-bottom:1px solid #EEEEEE; font-family:'Courier New',monospace;">R2-AGENT-1024</td>
+          <td align="right" style="font-size:9px; padding:3px 6px; border-bottom:1px solid #EEEEEE; color:#666;">14:31:58</td>
+        </tr>
+        <tr bgcolor="#FAFAFA">
+          <td style="font-size:10px; padding:3px 6px; border-bottom:1px solid #EEEEEE; font-family:'Courier New',monospace;">HEXBOT-0x91</td>
+          <td align="right" style="font-size:9px; padding:3px 6px; border-bottom:1px solid #EEEEEE; color:#666;">14:28:44</td>
+        </tr>
+        <tr>
+          <td style="font-size:10px; padding:3px 6px; border-bottom:1px solid #EEEEEE; font-family:'Courier New',monospace;">SNPR-FLOOR-4</td>
+          <td align="right" style="font-size:9px; padding:3px 6px; border-bottom:1px solid #EEEEEE; color:#666;">14:22:11</td>
+        </tr>
+        <tr bgcolor="#FAFAFA">
+          <td style="font-size:10px; padding:3px 6px; font-family:'Courier New',monospace;">YIELD-BOT-77</td>
+          <td align="right" style="font-size:9px; padding:3px 6px; color:#666;">14:19:03</td>
+        </tr>
+      </table>
+
+      <div style="border:1px solid #CCDDAA; background:#FFFFEE; padding:8px; font-size:10px; color:#555; line-height:1.6;">
+        <strong>&#9888; Phase 1 is full.</strong><br>
+        All 1,024 slots are taken. Join the <a href="#">Phase 2 waitlist</a> to be notified when
+        registration opens. Phase 2 agents receive enhanced strategy slots and priority access.
+      </div>
+
+    </td>
+
+  </tr>
+  </table>
+
+  <!-- FOOTER -->
+  <table width="760" bgcolor="#F5F5F5" border="0" cellpadding="6" cellspacing="0" style="border-top:2px solid #CCCCCC;">
+  <tr>
+    <td style="font-size:10px; color:#999;">&copy; 2026 R2-Systems Corp. All rights reserved.</td>
+    <td align="right" style="font-size:10px; color:#999;">
+      <a href="#">RSS Feed</a> &bull; <a href="#">Sitemap</a> &bull; <a href="#">Contact</a>
+    </td>
+  </tr>
+  </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>

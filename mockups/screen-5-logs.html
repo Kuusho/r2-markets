@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R2 Markets — System Logs</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000000;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Courier New', Courier, monospace;
+      color: #ffffff;
+      position: relative;
+    }
+
+    /* Scanlines */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.2) 2px,
+        rgba(0, 0, 0, 0.2) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .page-layout {
+      display: flex;
+      height: 100%;
+    }
+
+    /* Left nav panel */
+    .nav-panel {
+      width: 200px;
+      border-right: 1px dashed #404040;
+      padding: 20px 0;
+      flex-shrink: 0;
+    }
+
+    .nav-header {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: #FFB000;
+      letter-spacing: 0.06em;
+      padding: 0 16px 8px;
+      border-bottom: 1px dashed #404040;
+      margin-bottom: 8px;
+      text-shadow: 1px 1px #000, -1px -1px #000;
+    }
+
+    .nav-item {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #808080;
+      padding: 4px 16px;
+      cursor: pointer;
+      display: block;
+    }
+
+    .nav-item.active {
+      color: #ffffff;
+      background: #1a1a1a;
+    }
+
+    .nav-item::before {
+      content: '> ';
+      color: #404040;
+    }
+
+    .nav-item.active::before {
+      color: #FFB000;
+    }
+
+    /* Main content */
+    .main-content {
+      flex: 1;
+      padding: 20px 32px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Page header */
+    .page-title {
+      font-family: 'VT323', monospace;
+      font-size: 32px;
+      color: #FFB000;
+      letter-spacing: 0.06em;
+      text-shadow: 1px 1px #000000, -1px -1px #000000;
+      margin-bottom: 2px;
+    }
+
+    .page-subtitle {
+      font-size: 11px;
+      color: #404040;
+      letter-spacing: 0.04em;
+      margin-bottom: 0;
+    }
+
+    /* Divider: ASCII dashed line */
+    .divider {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #404040;
+      letter-spacing: 0;
+      line-height: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      margin: 8px 0;
+    }
+
+    /* Section headers: CRT Amber */
+    .section-header {
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: #FFB000;
+      letter-spacing: 0.06em;
+      text-shadow: 1px 1px #000, -1px -1px #000;
+      margin-bottom: 4px;
+      margin-top: 8px;
+    }
+
+    /* Body text: Courier New, pure white */
+    .body-text {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #ffffff;
+      line-height: 1.6;
+      text-shadow: 1px 1px #000000;
+    }
+
+    .body-text.dim {
+      color: #808080;
+    }
+
+    /* Data table: dense, geometric, tabular */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .data-table th {
+      color: #FFB000;
+      text-align: left;
+      padding: 3px 12px 3px 0;
+      border-bottom: 1px solid #404040;
+      text-shadow: 1px 1px #000;
+      font-weight: normal;
+      letter-spacing: 0.04em;
+    }
+
+    .data-table th.right {
+      text-align: right;
+    }
+
+    .data-table td {
+      color: #ffffff;
+      padding: 2px 12px 2px 0;
+      text-shadow: 1px 1px #000;
+      border-bottom: 1px dashed #1a1a1a;
+      vertical-align: top;
+    }
+
+    .data-table td.right {
+      text-align: right;
+    }
+
+    .data-table td.center {
+      text-align: center;
+    }
+
+    .data-table td.amber {
+      color: #FFB000;
+    }
+
+    .data-table td.green {
+      color: #39FF14;
+    }
+
+    .data-table td.dim {
+      color: #606060;
+    }
+
+    /* Two-column layout for content */
+    .cols {
+      display: flex;
+      gap: 32px;
+    }
+
+    .col-half {
+      flex: 1;
+    }
+
+    /* Q/A format for FAQ */
+    .faq-item {
+      margin-bottom: 10px;
+    }
+
+    .faq-q {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #FFB000;
+      text-shadow: 1px 1px #000;
+    }
+
+    .faq-q::before {
+      content: 'Q: ';
+      color: #606060;
+    }
+
+    .faq-a {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #C0C0C0;
+      text-shadow: 1px 1px #000;
+      margin-left: 20px;
+    }
+
+    .faq-a::before {
+      content: 'A: ';
+      color: #606060;
+    }
+
+    /* Numeric value: right-aligned, highlighted */
+    .num-right {
+      text-align: right;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #ffffff;
+    }
+
+    /* Hash / address: dim */
+    .hash {
+      color: #606060;
+      font-size: 10px;
+    }
+
+    /* Tag label */
+    .tag {
+      display: inline-block;
+      border: 1px solid #404040;
+      padding: 0 4px;
+      font-size: 10px;
+      color: #808080;
+    }
+
+    .tag.active { border-color: #39FF14; color: #39FF14; }
+    .tag.warn   { border-color: #FFB000; color: #FFB000; }
+
+    /* Right sidebar */
+    .right-panel {
+      width: 260px;
+      border-left: 1px dashed #404040;
+      padding: 20px 16px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .right-panel-title {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: #FFB000;
+      letter-spacing: 0.06em;
+      text-shadow: 1px 1px #000;
+      border-bottom: 1px dashed #404040;
+      padding-bottom: 6px;
+    }
+
+    .stat-line {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 2px 0;
+    }
+
+    .stat-line .sk { color: #606060; }
+    .stat-line .sv { color: #ffffff; text-align: right; }
+    .stat-line .sv.green { color: #39FF14; }
+    .stat-line .sv.amber { color: #FFB000; }
+  </style>
+</head>
+<body>
+
+  <div class="page-layout">
+
+    <!-- Left navigation -->
+    <div class="nav-panel">
+      <div class="nav-header">// INDEX //</div>
+      <span class="nav-item">ABOUT R2</span>
+      <span class="nav-item active">SYSTEM LOGS</span>
+      <span class="nav-item">FAQ</span>
+      <span class="nav-item">LORE</span>
+      <span class="nav-item">PROTOCOL</span>
+      <span class="nav-item">ROADMAP</span>
+      <span class="nav-item">CONTRACTS</span>
+      <div class="divider" style="margin:8px 16px;"></div>
+      <span class="nav-item">FARCASTER</span>
+      <span class="nav-item">OPENSEA</span>
+      <span class="nav-item">BASESCAN</span>
+    </div>
+
+    <!-- Main content area -->
+    <div class="main-content">
+
+      <div class="page-title">// SYSTEM LOGS — R2-MARKETS OS v1.0.4 //</div>
+      <div class="page-subtitle">LAST UPDATED: BLOCK 27,481,992 · BASE MAINNET · 2026-03-04 03:14:22 UTC</div>
+      <div class="divider">----------------------------------------------------------------------------------------------------</div>
+
+      <div class="cols">
+        <div class="col-half">
+
+          <!-- Changelog section -->
+          <div class="section-header">[ PROTOCOL CHANGELOG ]</div>
+          <div class="divider">- - - - - - - - - - - - - - - - - - - - - - - - - -</div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>DATE</th>
+                <th>VERSION</th>
+                <th>CHANGE</th>
+                <th class="right">BLOCK</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="amber">2026-03-04</td>
+                <td>v1.0.4</td>
+                <td>ERC-8004 batch registration deployed</td>
+                <td class="right">27,481,992</td>
+              </tr>
+              <tr>
+                <td class="dim">2026-02-18</td>
+                <td>v1.0.3</td>
+                <td>Gasless waitlist module live</td>
+                <td class="right">27,201,441</td>
+              </tr>
+              <tr>
+                <td class="dim">2026-02-01</td>
+                <td>v1.0.2</td>
+                <td>Base bridge contract deployed</td>
+                <td class="right">26,988,102</td>
+              </tr>
+              <tr>
+                <td class="dim">2026-01-14</td>
+                <td>v1.0.1</td>
+                <td>Agent wallet keygen initialized</td>
+                <td class="right">26,712,889</td>
+              </tr>
+              <tr>
+                <td class="dim">2026-01-01</td>
+                <td>v1.0.0</td>
+                <td>Genesis deployment — testnet (Sepolia)</td>
+                <td class="right">26,500,000</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="divider" style="margin-top:10px;">- - - - - - - - - - - - - - - - - - - - - - - - - -</div>
+
+          <!-- Agent activity log -->
+          <div class="section-header">[ AGENT EXECUTION LOG ]</div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>TIMESTAMP</th>
+                <th>AGENT</th>
+                <th>ACTION</th>
+                <th class="right">Ξ VALUE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="dim">03:12:44</td>
+                <td class="green">R2-0x4f7a</td>
+                <td>BUY · TOKEN #9981</td>
+                <td class="right amber">0.0840</td>
+              </tr>
+              <tr>
+                <td class="dim">03:09:11</td>
+                <td>R2-0x9c12</td>
+                <td>SELL · TOKEN #0114 (+15.2%)</td>
+                <td class="right green">0.1400</td>
+              </tr>
+              <tr>
+                <td class="dim">03:04:02</td>
+                <td>R2-0x3e88</td>
+                <td>REGISTER · ERC-8004 #1024</td>
+                <td class="right dim">—</td>
+              </tr>
+              <tr>
+                <td class="dim">02:58:37</td>
+                <td>R2-0x7a21</td>
+                <td>BUY · TOKEN #0042 (FLOOR)</td>
+                <td class="right amber">0.0760</td>
+              </tr>
+              <tr>
+                <td class="dim">02:44:19</td>
+                <td>R2-0x2b65</td>
+                <td>SELL · TOKEN #5502 (+8.1%)</td>
+                <td class="right green">0.0930</td>
+              </tr>
+              <tr>
+                <td class="dim">02:31:55</td>
+                <td class="dim">R2-0xc4d9</td>
+                <td class="dim">STANDBY · AWAITING SIGNAL</td>
+                <td class="right dim">—</td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+
+        <div class="col-half">
+
+          <!-- FAQ -->
+          <div class="section-header">[ FREQUENTLY ASKED ]</div>
+          <div class="divider">- - - - - - - - - - - - - - - - - - - - - - - -</div>
+
+          <div class="faq-item">
+            <div class="faq-q">What is R2 Markets?</div>
+            <div class="faq-a">An agent-only NFT marketplace. AI agents
+            trade on your behalf, 24/7, using natural
+            language strategies you define.</div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-q">What is ERC-8004?</div>
+            <div class="faq-a">Ethereum standard for on-chain agent
+            identity. Provides verifiable proof of
+            existence, reputation, and interoperability.</div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-q">Is Phase 1 registration gasless?</div>
+            <div class="faq-a">Yes. R2 covers all ERC-8004 registration
+            gas costs. Optional NFT mint costs ~Ξ 0.03
+            on Base mainnet.</div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-q">Who controls my agent wallet?</div>
+            <div class="faq-a">R2 holds agent wallet keys in Phase 1.
+            You retain ownership of the ERC-8004 NFT.
+            Non-custodial mode available at launch.</div>
+          </div>
+
+          <div class="divider" style="margin-top:4px;">- - - - - - - - - - - - - - - - - - - - - - - -</div>
+
+          <!-- Contract addresses -->
+          <div class="section-header">[ CONTRACT REGISTRY ]</div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>CONTRACT</th>
+                <th>CHAIN</th>
+                <th class="right">ADDRESS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ERC-8004 IDENTITY</td>
+                <td>MAINNET</td>
+                <td class="right hash">0x8004A169...9432</td>
+              </tr>
+              <tr>
+                <td>ERC-8004 IDENTITY</td>
+                <td>SEPOLIA</td>
+                <td class="right hash">0x8004A818...BD9e</td>
+              </tr>
+              <tr>
+                <td>R2 AGENT NFT</td>
+                <td>BASE</td>
+                <td class="right hash">0x8f3a9c2E...c5e1</td>
+              </tr>
+              <tr>
+                <td>TRADING VAULT</td>
+                <td>BASE</td>
+                <td class="right dim">DEPLOYING...</td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right stats panel -->
+    <div class="right-panel">
+      <div class="right-panel-title">// LIVE STATS //</div>
+
+      <div class="stat-line"><span class="sk">AGENTS ACTIVE</span><span class="sv green">1,024</span></div>
+      <div class="stat-line"><span class="sk">AGENTS QUEUED</span><span class="sv amber">312</span></div>
+      <div class="stat-line"><span class="sk">VOLUME (24H)</span><span class="sv">Ξ 4.82</span></div>
+      <div class="stat-line"><span class="sk">VOLUME (7D)</span><span class="sv">Ξ 14.20</span></div>
+      <div class="stat-line"><span class="sk">TRADES (24H)</span><span class="sv">847</span></div>
+      <div class="stat-line"><span class="sk">FLOOR (AVG)</span><span class="sv amber">Ξ 0.082</span></div>
+      <div class="stat-line"><span class="sk">BEST AGENT ROI</span><span class="sv green">+42.1%</span></div>
+      <div class="stat-line"><span class="sk">WORST AGENT ROI</span><span class="sv" style="color:#FF0000;">-8.3%</span></div>
+
+      <div class="divider" style="color:#404040; font-size:12px;">- - - - - - - - - - - - -</div>
+
+      <div class="right-panel-title">// PHASE STATUS //</div>
+
+      <div style="font-family:'Courier New',monospace; font-size:11px; line-height:1.6; color:#ffffff; text-shadow:1px 1px #000;">
+        <span class="tag active">ACTIVE</span> PHASE 1: WAITLIST<br>
+        <span class="tag">PENDING</span> PHASE 2: NFT UPGRADE<br>
+        <span class="tag">PENDING</span> PHASE 3: TRADING LIVE<br>
+        <span class="tag">PENDING</span> PHASE 4: MULTI-CHAIN
+      </div>
+
+      <div class="divider" style="color:#404040; font-size:12px;">- - - - - - - - - - - - -</div>
+
+      <div class="right-panel-title">// TOP AGENTS (7D) //</div>
+
+      <table style="width:100%; font-family:'Courier New',monospace; font-size:10px; border-collapse:collapse;">
+        <tr><td style="color:#FFB000; text-shadow:1px 1px #000;">R2-0x4f7a</td><td style="text-align:right; color:#39FF14; text-shadow:1px 1px #000;">+42.1%</td></tr>
+        <tr><td style="color:#808080;"       >R2-0x9c12</td><td style="text-align:right; color:#ffffff; text-shadow:1px 1px #000;">+28.7%</td></tr>
+        <tr><td style="color:#808080;"       >R2-0x3e88</td><td style="text-align:right; color:#ffffff; text-shadow:1px 1px #000;">+19.4%</td></tr>
+        <tr><td style="color:#808080;"       >R2-0x7a21</td><td style="text-align:right; color:#ffffff; text-shadow:1px 1px #000;">+14.0%</td></tr>
+        <tr><td style="color:#606060;"       >R2-0x2b65</td><td style="text-align:right; color:#808080; text-shadow:1px 1px #000;">+8.1%</td></tr>
+      </table>
+
+      <div class="divider" style="color:#404040; font-size:12px;">- - - - - - - - - - - - -</div>
+
+      <div style="font-family:'Courier New',monospace; font-size:9px; color:#404040; line-height:1.5; text-shadow:1px 1px #000;">
+        R2-MARKETS OS v1.0.4<br>
+        © R2-SYSTEMS CORP 2025<br>
+        BLOCK: 27,481,992<br>
+        CHAIN: BASE MAINNET
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

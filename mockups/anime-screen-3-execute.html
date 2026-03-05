@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: SYNC/OVERRIDE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root { --bg:#000; --pink:#FF007F; --green:#CCFF00; --cyan:#00FFFF; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); width:100vw; height:100vh; overflow:hidden; position:relative; }
+
+    .kata-layer {
+      position:absolute; inset:0; z-index:1; pointer-events:none;
+      font-family:'Noto Sans JP',sans-serif; font-weight:900; font-size:90px;
+      color:rgba(255,255,255,0.035); line-height:1.1; letter-spacing:-3px;
+      padding:10px; overflow:hidden;
+    }
+
+    /* ── DIAGONAL STRIPE (main modal container) ── */
+    /* Top-left to bottom-right diagonal cut */
+    .diag-stripe {
+      position:absolute;
+      /* Diagonal band: from top-left to bottom-right */
+      /* Using clip-path to create the angled modal area */
+      left:0; top:0; right:0; bottom:0;
+      z-index:10;
+      clip-path: polygon(0 15%, 100% 0%, 100% 85%, 0 100%);
+      background: linear-gradient(135deg, rgba(26,11,46,0.96) 0%, rgba(0,0,0,0.98) 100%);
+      border-top: 4px solid var(--pink);
+      border-bottom: 4px solid var(--pink);
+    }
+
+    /* Side border lines (visual only, outside the clip) */
+    .diag-border-top, .diag-border-bot {
+      position:absolute; left:0; right:0; height:4px;
+      background:var(--pink); box-shadow:0 0 20px rgba(255,0,127,0.6);
+      z-index:11;
+      pointer-events:none;
+    }
+    .diag-border-top { top:14.5%; transform:rotate(-3.8deg) translateY(-2px); transform-origin:left center; }
+    .diag-border-bot { bottom:14.5%; transform:rotate(-3.8deg) translateY(2px); transform-origin:left center; }
+
+    /* ── CONTENT inside diagonal ── */
+    .modal-content {
+      position:absolute; left:0; right:0;
+      top:18%; bottom:18%;
+      z-index:20;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:0; padding:0 80px;
+    }
+
+    .auth-label {
+      font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:0.5em;
+      color:rgba(255,0,127,0.6); text-transform:uppercase; margin-bottom:24px;
+      align-self:flex-start;
+    }
+
+    /* Target info row */
+    .target-row {
+      align-self:flex-start; margin-bottom:32px;
+      display:flex; gap:40px; align-items:flex-end;
+    }
+    .target-item {}
+    .t-label {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.3em;
+      color:rgba(0,255,255,0.4); text-transform:uppercase; margin-bottom:4px;
+    }
+    .t-val {
+      font-family:'Anton',sans-serif; font-size:28px; font-style:italic; letter-spacing:-1px;
+      color:#fff;
+    }
+    .t-val.pink { color:var(--pink); }
+    .t-val.green { color:var(--green); }
+
+    /* ── Massive input field ── */
+    .input-wrap {
+      width:100%; position:relative; margin-bottom:40px;
+    }
+    .input-label {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.3em;
+      color:rgba(255,0,127,0.5); text-transform:uppercase; margin-bottom:8px;
+    }
+    .input-field-display {
+      width:100%; padding:16px 0;
+      font-family:'Anton',sans-serif; font-size:32px; font-style:italic; letter-spacing:-1px;
+      color:#fff;
+      border:none; border-bottom:4px solid var(--pink);
+      background:transparent; outline:none;
+      display:flex; align-items:center; gap:4px;
+    }
+    .input-text { color:#fff; }
+    /* Block cursor */
+    .block-cursor {
+      display:inline-block; width:20px; height:34px;
+      background:var(--pink);
+      box-shadow:0 0 12px rgba(255,0,127,0.6);
+      vertical-align:bottom;
+    }
+    .input-shadow-line {
+      width:100%; height:4px; margin-top:-4px;
+      box-shadow:0 0 20px rgba(255,0,127,0.4);
+      pointer-events:none;
+    }
+
+    /* ── SYNC/OVERRIDE full-width button ── */
+    .override-btn {
+      width:100%; height:72px;
+      background: linear-gradient(135deg, #CC0060 0%, #FF007F 50%, #CC0060 100%);
+      border:none; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+      box-shadow:0 0 40px rgba(255,0,127,0.4), inset 0 0 20px rgba(0,0,0,0.3);
+      transition: background 0.12s, transform 0.12s, box-shadow 0.12s, color 0.12s;
+    }
+    .override-btn:hover {
+      background:var(--green);
+      transform:translateX(-5px);
+      box-shadow:0 0 60px rgba(204,255,0,0.5), inset 0 0 20px rgba(0,0,0,0.2);
+    }
+    .override-btn:hover .override-text { color:#000; }
+    .override-text {
+      font-family:'Anton',sans-serif; font-size:32px; font-style:italic; letter-spacing:4px;
+      color:#fff;
+      transition:color 0.12s;
+    }
+
+    /* Status row below button */
+    .status-row {
+      display:flex; gap:30px; margin-top:16px; align-self:flex-start;
+    }
+    .status-item {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em;
+      color:rgba(255,255,255,0.3);
+    }
+    .status-item span { color:var(--green); }
+    .status-item.warn span { color:var(--pink); }
+
+    /* ── BG corners (outside stripe) ── */
+    .corner-info {
+      position:absolute; z-index:5;
+      font-family:'Share Tech Mono',monospace; font-size:9px;
+      letter-spacing:0.2em; line-height:1.8;
+    }
+    .ci-tl { top:20px; left:24px; color:rgba(0,255,255,0.3); }
+    .ci-br { bottom:20px; right:24px; color:rgba(204,255,0,0.25); text-align:right; }
+
+    .hud-stripe {
+      position:absolute; top:0; left:0; right:0; height:50px; z-index:30;
+      background:rgba(0,0,0,0.95); border-bottom:3px solid var(--pink);
+      display:flex; align-items:center; padding:0 24px; gap:16px;
+    }
+    .hud-title {
+      font-family:'Anton',sans-serif; font-size:18px; font-style:italic; letter-spacing:1px;
+      color:var(--pink);
+    }
+    .hud-crumb {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em;
+      color:rgba(0,255,255,0.4);
+    }
+    .hud-right {
+      margin-left:auto; font-family:'Share Tech Mono',monospace; font-size:9px;
+      color:rgba(255,255,255,0.2); letter-spacing:0.15em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="kata-layer">
+  データ・ログ　ネットワーク　アクセス　システム　マーケット　デジタル<br>
+  エージェント　プロトコル　データ・ログ　ネット　ワーク　アクセス<br>
+  システム　マーケット　デジタル　エージェント　プロトコル<br>
+  データ・ログ　ネットワーク　アクセス　システム　マーケット<br>
+  デジタル　エージェント　プロトコル　データ・ログ
+</div>
+
+<!-- BG diagonal decorative lines -->
+<svg style="position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <!-- Background grid subtle -->
+  <line x1="0" y1="0" x2="1440" y2="900" stroke="#FF007F" stroke-width="1" opacity="0.06"/>
+  <line x1="1440" y1="0" x2="0" y2="900" stroke="#00FFFF" stroke-width="1" opacity="0.04"/>
+  <!-- Corner accent marks -->
+  <path d="M0,0 L60,0 M0,0 L0,60" stroke="#00FFFF" stroke-width="2" opacity="0.3"/>
+  <path d="M1440,0 L1380,0 M1440,0 L1440,60" stroke="#CCFF00" stroke-width="2" opacity="0.25"/>
+  <path d="M0,900 L60,900 M0,900 L0,840" stroke="#FF007F" stroke-width="2" opacity="0.3"/>
+  <path d="M1440,900 L1380,900 M1440,900 L1440,840" stroke="#00FFFF" stroke-width="2" opacity="0.25"/>
+</svg>
+
+<div class="hud-stripe">
+  <span class="hud-title">EXECUTION TERMINAL</span>
+  <span class="hud-crumb">HOME // MAP // EXECUTE ORDER</span>
+  <div class="hud-right">AGENT: R2-ALPHA-01 &nbsp;|&nbsp; BASE NET &nbsp;|&nbsp; BLOCK #27491842</div>
+</div>
+
+<!-- Corner info blocks -->
+<div class="corner-info ci-tl">
+  SYS.VER // 1.0.4<br>
+  AUTH // REQUIRED<br>
+  MODE // OVERRIDE
+</div>
+<div class="corner-info ci-br">
+  ESTIMATED GAS: Ξ 0.0004<br>
+  TOTAL COST: Ξ 0.4604<br>
+  CONFIRM REQUIRED
+</div>
+
+<!-- Diagonal stripe -->
+<div class="diag-stripe"></div>
+<div class="diag-border-top"></div>
+<div class="diag-border-bot"></div>
+
+<!-- Modal content (inside diagonal) -->
+<div class="modal-content">
+  <div class="auth-label">// AUTHORIZATION INTERFACE — EXECUTE ORDER</div>
+
+  <div class="target-row">
+    <div class="target-item">
+      <div class="t-label">COLLECTION</div>
+      <div class="t-val">MECHDROID</div>
+    </div>
+    <div class="target-item">
+      <div class="t-label">TOKEN ID</div>
+      <div class="t-val pink">#1024</div>
+    </div>
+    <div class="target-item">
+      <div class="t-label">BID PRICE</div>
+      <div class="t-val green">Ξ 0.460</div>
+    </div>
+    <div class="target-item">
+      <div class="t-label">CONFIDENCE</div>
+      <div class="t-val pink">91%</div>
+    </div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">// AGENT AUTHORIZATION CODE</div>
+    <div class="input-field-display">
+      <span class="input-text">R2-ALPHA-01::EXEC::0xCC4F9A</span><span class="block-cursor"></span>
+    </div>
+    <div class="input-shadow-line"></div>
+  </div>
+
+  <div class="override-btn">
+    <span class="override-text">&lt;&lt; SYNC / OVERRIDE &gt;&gt;</span>
+  </div>
+
+  <div class="status-row">
+    <span class="status-item">AGENT: <span>ONLINE</span></span>
+    <span class="status-item">WALLET: <span>FUNDED</span></span>
+    <span class="status-item warn">STATUS: <span>AWAITING AUTH</span></span>
+    <span class="status-item">SLIPPAGE: <span>2.0%</span></span>
+  </div>
+</div>
+
+</body>
+</html>

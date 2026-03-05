@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: STRATEGOS — MANIFEST</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root {
+      --void:#000; --bg:#080814; --bevel-hi:#3a3a5a; --bevel-lo:#050510;
+      --amber:#FF6A00; --amber-dim:#994000; --blue:#0088FF;
+      --green:#00CC44; --red:#CC2200; --gold:#FFCC44; --data:#88AACC; --dim:rgba(136,170,204,0.3);
+      /* Rarity colors — hard indexed palette */
+      --r-leg:#FFAA00; --r-epic:#9933FF; --r-rare:#0088FF; --r-unc:#00CC44; --r-com:#666688;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:var(--void); width:100vw; height:100vh;
+      display:flex; align-items:center; justify-content:center; overflow:hidden;
+      font-family:'Share Tech Mono',monospace;
+      cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cline x1='10' y1='0' x2='10' y2='7' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='10' y1='13' x2='10' y2='20' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='0' y1='10' x2='7' y2='10' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='13' y1='10' x2='20' y2='10' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Ccircle cx='10' cy='10' r='2.5' stroke='%23FF6A00' stroke-width='1' fill='none'/%3E%3C/svg%3E") 10 10, crosshair;
+    }
+    .viewport {
+      width:800px; height:600px; overflow:hidden; position:relative; background:var(--bg);
+      border-top:3px solid var(--bevel-hi); border-left:3px solid var(--bevel-hi);
+      border-right:3px solid var(--bevel-lo); border-bottom:3px solid var(--bevel-lo);
+    }
+    .metal-noise {
+      position:absolute; inset:0; pointer-events:none; z-index:5;
+      background:repeating-linear-gradient(180deg,transparent 0,transparent 2px,rgba(255,255,255,0.007) 2px,rgba(255,255,255,0.007) 3px);
+    }
+    .chrome-top {
+      position:absolute; top:0; left:0; right:0; height:30px; z-index:30;
+      background:repeating-linear-gradient(180deg,#1e1e3a 0,#1e1e3a 1px,#161628 1px,#161628 2px);
+      border-bottom:2px solid var(--bevel-lo);
+      display:flex; align-items:center; padding:0 10px; gap:8px;
+    }
+    .c-dot { width:8px; height:8px; }
+    .c-dot.on { background:var(--amber); box-shadow:0 0 5px var(--amber); }
+    .c-dot.off { background:#1a1a28; border:1px solid #0a0a16; }
+    .c-lbl { font-size:9px; letter-spacing:0.22em; color:var(--dim); }
+    .c-r { margin-left:auto; font-size:8px; letter-spacing:0.12em; color:var(--dim); }
+    .chrome-bot {
+      position:absolute; bottom:0; left:0; right:0; height:26px; z-index:30;
+      background:repeating-linear-gradient(180deg,#161628 0,#161628 1px,#1e1e3a 1px,#1e1e3a 2px);
+      border-top:2px solid var(--bevel-lo);
+      display:flex; align-items:center; padding:0 10px; gap:20px;
+    }
+    .s-item { display:flex; align-items:center; gap:5px; font-size:8px; letter-spacing:0.16em; color:var(--dim); }
+    .s-led { width:5px; height:5px; }
+    .s-led.g { background:var(--green); box-shadow:0 0 4px var(--green); }
+    .s-led.a { background:var(--amber); box-shadow:0 0 4px var(--amber); }
+
+    /* ── LAYOUT ── */
+    .layout {
+      position:absolute; top:30px; bottom:26px; left:0; right:0;
+      display:grid; grid-template-columns:1fr 220px; grid-template-rows:1fr;
+    }
+    .panel {
+      background:repeating-linear-gradient(180deg,#0c0c1e 0,#0c0c1e 1px,#0e0e22 1px,#0e0e22 2px);
+    }
+
+    /* ── LEFT: Grid + filter bar ── */
+    .grid-area { padding:12px; display:flex; flex-direction:column; gap:10px; overflow:hidden; }
+
+    /* Filter bar */
+    .filter-bar { display:flex; gap:6px; align-items:center; }
+    .filter-tab {
+      padding:3px 10px; font-size:7px; letter-spacing:0.25em; cursor:pointer;
+      border-top:1px solid var(--bevel-hi); border-left:1px solid var(--bevel-hi);
+      border-right:1px solid var(--bevel-lo); border-bottom:1px solid var(--bevel-lo);
+      background:linear-gradient(180deg,#1a1a2c,#14141e); color:var(--dim);
+      transition:background 0.08s, color 0.08s;
+    }
+    .filter-tab:hover { background:linear-gradient(180deg,#2a2a3e,#1e1e2e); color:var(--data); }
+    .filter-tab.active {
+      background:linear-gradient(180deg,#2a1800,#1a0e00);
+      border-top-color:var(--amber); border-left-color:var(--amber); color:var(--amber);
+    }
+    .filter-count { margin-left:auto; font-size:8px; letter-spacing:0.18em; color:var(--dim); }
+
+    /* 5×5 Inventory grid */
+    .inv-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; flex:1; }
+    .slot {
+      aspect-ratio:1; position:relative;
+      border-top:1px solid var(--bevel-lo); border-left:1px solid var(--bevel-lo);
+      border-right:1px solid var(--bevel-hi); border-bottom:1px solid var(--bevel-hi);
+      background:#08080f; cursor:pointer;
+      transition:border-top-color 0.06s, border-left-color 0.06s;
+      overflow:hidden;
+    }
+    .slot.empty { background:repeating-linear-gradient(45deg,#08080f 0,#08080f 4px,#09090f 4px,#09090f 8px); }
+    .slot:hover { border-top-color:var(--amber); border-left-color:var(--amber); }
+    .slot.selected { border-top-color:var(--gold); border-left-color:var(--gold); border-right-color:var(--gold); border-bottom-color:var(--gold); border-width:2px; }
+
+    /* Rarity indicator: top-right corner colored square — NO CSS filter */
+    .rarity-pip {
+      position:absolute; top:2px; right:2px; width:6px; height:6px;
+    }
+    .rarity-pip.L { background:var(--r-leg); }
+    .rarity-pip.E { background:var(--r-epic); }
+    .rarity-pip.R { background:var(--r-rare); }
+    .rarity-pip.U { background:var(--r-unc); }
+    .rarity-pip.C { background:var(--r-com); }
+
+    /* Token ID label in slot */
+    .slot-id { position:absolute; bottom:2px; left:2px; font-size:6px; letter-spacing:0.05em; color:rgba(136,170,204,0.4); }
+    /* Confidence bar bottom of slot */
+    .slot-conf { position:absolute; bottom:0; left:0; right:0; height:3px; }
+    .slot-conf.high { background:var(--green); }
+    .slot-conf.med { background:var(--amber); }
+    .slot-conf.low { background:var(--red); }
+
+    /* ── RIGHT: Detail pane ── */
+    .detail-pane {
+      border-left:2px solid var(--bevel-lo);
+      padding:12px; display:flex; flex-direction:column; gap:8px;
+    }
+    .dp-title {
+      font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700;
+      color:var(--gold); letter-spacing:0.05em; margin-bottom:2px;
+    }
+    .dp-id { font-size:8px; letter-spacing:0.2em; color:var(--amber); margin-bottom:6px; }
+
+    /* Token image area */
+    .dp-img {
+      width:100%; aspect-ratio:1;
+      border-top:2px solid var(--r-leg); border-left:2px solid var(--r-leg);
+      border-right:2px solid var(--r-leg); border-bottom:2px solid var(--r-leg);
+      background:#08080f; position:relative; overflow:hidden; margin-bottom:8px;
+    }
+
+    .dp-stat { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; border-bottom:1px solid rgba(5,5,16,0.8); }
+    .dp-slbl { font-size:7px; letter-spacing:0.18em; color:var(--dim); }
+    .dp-sval { font-size:10px; color:var(--gold); }
+    .dp-sval.g { color:var(--green); } .dp-sval.a { color:var(--amber); } .dp-sval.leg { color:var(--r-leg); }
+
+    /* Trait chips */
+    .traits-wrap { display:flex; flex-wrap:wrap; gap:3px; margin-top:4px; }
+    .trait-chip {
+      padding:2px 6px; font-size:6px; letter-spacing:0.18em;
+      border-top:1px solid var(--bevel-hi); border-left:1px solid var(--bevel-hi);
+      border-right:1px solid var(--bevel-lo); border-bottom:1px solid var(--bevel-lo);
+      background:#0e0e1e; color:var(--data);
+    }
+    .trait-chip.rare { border-top-color:var(--r-leg); border-left-color:var(--r-leg); color:var(--r-leg); }
+
+    /* BID button */
+    .bid-btn {
+      width:100%; height:36px; margin-top:auto;
+      background:linear-gradient(180deg,#2a1800,#1a0e00);
+      border-top:2px solid var(--amber); border-left:2px solid var(--amber);
+      border-right:2px solid var(--amber-dim); border-bottom:2px solid var(--amber-dim);
+      cursor:pointer; font-family:'Orbitron',sans-serif; font-size:10px;
+      font-weight:700; letter-spacing:0.2em; color:var(--amber);
+      transition:background 0.08s, color 0.08s;
+    }
+    .bid-btn:hover { background:linear-gradient(180deg,#441e00,#2a1200); color:var(--gold); }
+    .bid-btn:active {
+      border-top-color:var(--amber-dim); border-left-color:var(--amber-dim);
+      border-right-color:var(--amber); border-bottom-color:var(--amber);
+    }
+  </style>
+</head>
+<body>
+<div class="viewport">
+  <div class="metal-noise"></div>
+
+  <div class="chrome-top">
+    <div class="c-dot on"></div><div class="c-dot off"></div><div class="c-dot off"></div>
+    <span class="c-lbl">TARGET MANIFEST // COLLECTION: MECHDROID // 25 UNITS</span>
+    <span class="c-r">SORTED: CONFIDENCE DESC</span>
+  </div>
+  <div class="chrome-bot">
+    <span class="s-item"><span class="s-led a"></span>4 FLAGGED</span>
+    <span class="s-item"><span class="s-led g"></span>1 ACQUIRED</span>
+    <span class="s-item"><span class="s-led g"></span>SCAN LIVE</span>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: Grid -->
+    <div class="grid-area">
+      <div class="filter-bar">
+        <div class="filter-tab active">ALL</div>
+        <div class="filter-tab">LEGENDARY</div>
+        <div class="filter-tab">EPIC</div>
+        <div class="filter-tab">RARE</div>
+        <div class="filter-tab">FLAGGED</div>
+        <div class="filter-count">25 / 847 LOADED</div>
+      </div>
+
+      <div class="inv-grid">
+        <!-- ROW 1 -->
+        <div class="slot selected">
+          <div class="rarity-pip L"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><polygon points="30,8 46,20 46,40 30,52 14,40 14,20" fill="none" stroke="#FFAA00" stroke-width="1.5"/><circle cx="30" cy="30" r="8" fill="#FFAA00" opacity="0.6"/><line x1="30" y1="14" x2="30" y2="46" stroke="#FFAA00" stroke-width="0.5" opacity="0.4"/><line x1="14" y1="30" x2="46" y2="30" stroke="#FFAA00" stroke-width="0.5" opacity="0.4"/></svg>
+          <div class="slot-id">#1024</div>
+          <div class="slot-conf high"></div>
+        </div>
+        <div class="slot">
+          <div class="rarity-pip E"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><rect x="14" y="14" width="32" height="32" fill="none" stroke="#9933FF" stroke-width="1.5"/><circle cx="30" cy="30" r="10" fill="none" stroke="#9933FF" stroke-width="1"/><rect x="26" y="26" width="8" height="8" fill="#9933FF" opacity="0.5"/></svg>
+          <div class="slot-id">#1031</div>
+          <div class="slot-conf high"></div>
+        </div>
+        <div class="slot">
+          <div class="rarity-pip R"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><polygon points="30,10 50,50 10,50" fill="none" stroke="#0088FF" stroke-width="1.5"/><circle cx="30" cy="38" r="6" fill="#0088FF" opacity="0.4"/></svg>
+          <div class="slot-id">#0847</div>
+          <div class="slot-conf high"></div>
+        </div>
+        <div class="slot">
+          <div class="rarity-pip E"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><polygon points="30,8 52,20 52,40 30,52 8,40 8,20" fill="none" stroke="#9933FF" stroke-width="1.5"/><circle cx="30" cy="30" r="6" fill="#9933FF" opacity="0.5"/></svg>
+          <div class="slot-id">#1067</div>
+          <div class="slot-conf high"></div>
+        </div>
+        <div class="slot">
+          <div class="rarity-pip R"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><circle cx="30" cy="30" r="20" fill="none" stroke="#0088FF" stroke-width="1.5"/><line x1="14" y1="14" x2="46" y2="46" stroke="#0088FF" stroke-width="1" opacity="0.4"/></svg>
+          <div class="slot-id">#0312</div>
+          <div class="slot-conf med"></div>
+        </div>
+        <!-- ROW 2 -->
+        <div class="slot">
+          <div class="rarity-pip U"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><rect x="16" y="16" width="28" height="28" fill="none" stroke="#00CC44" stroke-width="1.5"/><rect x="23" y="23" width="14" height="14" fill="#00CC44" opacity="0.3"/></svg>
+          <div class="slot-id">#1102</div>
+          <div class="slot-conf med"></div>
+        </div>
+        <div class="slot">
+          <div class="rarity-pip L"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><circle cx="30" cy="30" r="18" fill="none" stroke="#FFAA00" stroke-width="2"/><polygon points="30,15 35,27 48,27 38,35 42,47 30,40 18,47 22,35 12,27 25,27" fill="#FFAA00" opacity="0.5"/></svg>
+          <div class="slot-id">#0188</div>
+          <div class="slot-conf med"></div>
+        </div>
+        <div class="slot">
+          <div class="rarity-pip C"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><circle cx="30" cy="30" r="16" fill="none" stroke="#666688" stroke-width="1.5"/><line x1="20" y1="20" x2="40" y2="40" stroke="#666688" stroke-width="1" opacity="0.6"/><line x1="40" y1="20" x2="20" y2="40" stroke="#666688" stroke-width="1" opacity="0.6"/></svg>
+          <div class="slot-id">#1204</div>
+          <div class="slot-conf low"></div>
+        </div>
+        <div class="slot">
+          <div class="rarity-pip R"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><polygon points="30,10 44,22 44,38 30,50 16,38 16,22" fill="none" stroke="#0088FF" stroke-width="1.5"/></svg>
+          <div class="slot-id">#0773</div>
+          <div class="slot-conf med"></div>
+        </div>
+        <div class="slot">
+          <div class="rarity-pip U"></div>
+          <svg width="100%" height="100%" viewBox="0 0 60 60"><rect width="60" height="60" fill="#0a0a0a"/><rect x="12" y="12" width="36" height="36" fill="none" stroke="#00CC44" stroke-width="1.5"/><circle cx="30" cy="30" r="10" fill="none" stroke="#00CC44" stroke-width="1"/></svg>
+          <div class="slot-id">#0421</div>
+          <div class="slot-conf med"></div>
+        </div>
+        <!-- ROW 3 -->
+        <div class="slot"><div class="rarity-pip C"></div><div class="slot-id">#0502</div><div class="slot-conf low"></div></div>
+        <div class="slot"><div class="rarity-pip U"></div><div class="slot-id">#0618</div><div class="slot-conf low"></div></div>
+        <div class="slot"><div class="rarity-pip C"></div><div class="slot-id">#0033</div><div class="slot-conf low"></div></div>
+        <div class="slot"><div class="rarity-pip R"></div><div class="slot-id">#0990</div><div class="slot-conf low"></div></div>
+        <div class="slot"><div class="rarity-pip C"></div><div class="slot-id">#0147</div><div class="slot-conf low"></div></div>
+        <!-- ROW 4 -->
+        <div class="slot"><div class="rarity-pip U"></div><div class="slot-id">#0229</div><div class="slot-conf low"></div></div>
+        <div class="slot"><div class="rarity-pip C"></div><div class="slot-id">#0384</div><div class="slot-conf low"></div></div>
+        <div class="slot"><div class="rarity-pip C"></div><div class="slot-id">#0711</div><div class="slot-conf low"></div></div>
+        <div class="slot"><div class="rarity-pip U"></div><div class="slot-id">#0856</div><div class="slot-conf low"></div></div>
+        <div class="slot"><div class="rarity-pip C"></div><div class="slot-id">#0933</div><div class="slot-conf low"></div></div>
+        <!-- ROW 5 -->
+        <div class="slot empty"></div>
+        <div class="slot empty"></div>
+        <div class="slot empty"></div>
+        <div class="slot empty"></div>
+        <div class="slot empty"></div>
+      </div>
+
+      <!-- Rarity legend -->
+      <div style="display:flex;gap:12px;align-items:center;">
+        <span style="font-size:6px;letter-spacing:0.2em;color:var(--dim);">RARITY:</span>
+        <span style="font-size:6px;letter-spacing:0.15em;color:var(--r-leg);">■ LEGENDARY</span>
+        <span style="font-size:6px;letter-spacing:0.15em;color:var(--r-epic);">■ EPIC</span>
+        <span style="font-size:6px;letter-spacing:0.15em;color:var(--r-rare);">■ RARE</span>
+        <span style="font-size:6px;letter-spacing:0.15em;color:var(--r-unc);">■ UNCOMMON</span>
+        <span style="font-size:6px;letter-spacing:0.15em;color:var(--r-com);">■ COMMON</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: Detail pane -->
+    <div class="panel detail-pane">
+      <div class="dp-title">MECHDROID</div>
+      <div class="dp-id">TOKEN #1024 // LEGENDARY</div>
+
+      <div class="dp-img">
+        <svg width="100%" height="100%" viewBox="0 0 196 196">
+          <rect width="196" height="196" fill="#080808"/>
+          <!-- Mech silhouette -->
+          <rect x="68" y="30" width="60" height="45" fill="none" stroke="#FFAA00" stroke-width="2"/>
+          <rect x="78" y="42" width="16" height="8" fill="#FFAA00" opacity="0.7"/>
+          <rect x="102" y="42" width="16" height="8" fill="#FFAA00" opacity="0.7"/>
+          <line x1="85" y1="60" x2="111" y2="60" stroke="#FFAA00" stroke-width="1" opacity="0.4"/>
+          <line x1="85" y1="65" x2="111" y2="65" stroke="#FFAA00" stroke-width="1" opacity="0.4"/>
+          <line x1="98" y1="30" x2="98" y2="22" stroke="#FFAA00" stroke-width="2"/>
+          <circle cx="98" cy="20" r="4" fill="#FFAA00"/>
+          <!-- Torso -->
+          <rect x="60" y="75" width="76" height="60" fill="none" stroke="#FFAA00" stroke-width="2"/>
+          <rect x="72" y="84" width="22" height="18" fill="none" stroke="#FF6A00" stroke-width="1"/>
+          <rect x="102" y="84" width="22" height="18" fill="none" stroke="#FF6A00" stroke-width="1"/>
+          <circle cx="98" cy="115" r="12" fill="none" stroke="#FFAA00" stroke-width="1.5"/>
+          <circle cx="98" cy="115" r="5" fill="#FFAA00" opacity="0.6"/>
+          <!-- Arms -->
+          <rect x="28" y="78" width="24" height="50" fill="none" stroke="#FFAA00" stroke-width="1.5"/>
+          <rect x="144" y="78" width="24" height="50" fill="none" stroke="#FFAA00" stroke-width="1.5"/>
+          <!-- Legs -->
+          <rect x="68" y="135" width="26" height="48" fill="none" stroke="#FFAA00" stroke-width="1.5"/>
+          <rect x="102" y="135" width="26" height="48" fill="none" stroke="#FFAA00" stroke-width="1.5"/>
+          <!-- Corner decorations -->
+          <line x1="8" y1="8" x2="24" y2="8" stroke="#FFAA00" stroke-width="1" opacity="0.4"/>
+          <line x1="8" y1="8" x2="8" y2="24" stroke="#FFAA00" stroke-width="1" opacity="0.4"/>
+          <line x1="188" y1="188" x2="172" y2="188" stroke="#FFAA00" stroke-width="1" opacity="0.4"/>
+          <line x1="188" y1="188" x2="188" y2="172" stroke="#FFAA00" stroke-width="1" opacity="0.4"/>
+        </svg>
+      </div>
+
+      <div class="dp-stat"><span class="dp-slbl">RARITY</span><span class="dp-sval leg">LEGENDARY</span></div>
+      <div class="dp-stat"><span class="dp-slbl">FLOOR</span><span class="dp-sval a">Ξ 0.460</span></div>
+      <div class="dp-stat"><span class="dp-slbl">LAST SALE</span><span class="dp-sval">Ξ 0.410</span></div>
+      <div class="dp-stat"><span class="dp-slbl">CONFIDENCE</span><span class="dp-sval g">91%</span></div>
+      <div class="dp-stat"><span class="dp-slbl">RANK</span><span class="dp-sval leg">#47 / 10K</span></div>
+
+      <div style="font-size:6px;letter-spacing:0.25em;color:var(--dim);margin-top:4px;">TRAITS</div>
+      <div class="traits-wrap">
+        <div class="trait-chip rare">PLASMA CORE</div>
+        <div class="trait-chip rare">GOLD PLATING</div>
+        <div class="trait-chip">COMBAT MODE</div>
+        <div class="trait-chip">JETPACK</div>
+        <div class="trait-chip">DUAL CANNON</div>
+        <div class="trait-chip">RARE VISOR</div>
+      </div>
+
+      <button class="bid-btn">▶ QUEUE BID Ξ 0.460</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

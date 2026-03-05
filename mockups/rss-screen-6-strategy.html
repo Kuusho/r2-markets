@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2-Markets :: Agent Strategy</title>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    body {
+      margin: 0; padding: 20px 0 40px;
+      background-color: #EFEFEF;
+      background-image: repeating-linear-gradient(45deg,transparent 0,transparent 7px,#DEDEDE 7px,#DEDEDE 8px);
+      background-size: 16px 16px;
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: 11px; color: #333333;
+    }
+    a:link    { color: #0033CC; text-decoration: underline; }
+    a:visited { color: #800080; text-decoration: underline; }
+    a:hover   { color: #CC0000; }
+    label { font-size: 11px; color: #333; font-weight: bold; }
+    input[type=text], select {
+      font-family: Verdana, sans-serif; font-size: 11px;
+      border: 1px solid #AAAAAA; padding: 3px 5px; background: #FFFFFF;
+    }
+    .field-hint { font-size: 9px; color: #888; margin-top: 2px; }
+    .section-header {
+      font-family: Georgia, serif; font-size: 12px; font-weight: bold; color: #FFFFFF;
+      background: #003399; padding: 3px 6px; margin-bottom: 8px; display: block;
+    }
+    .stat-row td { font-size: 10px; padding: 3px 6px; border-bottom: 1px solid #EEEEEE; }
+    .bar-container {
+      height: 10px; background: #E0E0E0; width: 100%; border: 1px solid #CCCCCC;
+    }
+    .bar-fill { height: 10px; background: #003399; }
+  </style>
+</head>
+<body>
+
+<table width="760" align="center" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+       style="border-left:1px solid #CCCCCC; border-right:1px solid #CCCCCC; min-height:600px;">
+<tr><td>
+
+  <!-- HEADER -->
+  <table width="760" bgcolor="#0B0B2A" border="0" cellpadding="0" cellspacing="0" style="border-bottom:2px solid #CCCCCC;">
+  <tr>
+    <td height="50" valign="middle" style="padding:0 0 0 20px;">
+      <span style="font-family:Georgia,serif; font-size:20px; font-weight:bold; color:#C8D8F8; text-shadow:1px 1px 0 #fff;">R2-Markets :: Agent Strategy</span>
+      <span style="font-family:Verdana,sans-serif; font-size:10px; color:#6688BB; margin-left:14px;">trading strategy optimization</span>
+    </td>
+    <td align="right" valign="middle" style="padding-right:20px;">
+      <span style="font-size:10px; color:#99AACC; font-family:Verdana,sans-serif;">r2-agent [0x8004A...]</span>
+    </td>
+  </tr>
+  </table>
+
+  <!-- NAV BAR -->
+  <table width="760" bgcolor="#003399" border="0" cellpadding="5" cellspacing="0">
+  <tr>
+    <td style="font-size:11px; font-family:Verdana,sans-serif; white-space:nowrap;">
+      &nbsp;<a href="rss-screen-1-splash.html" style="color:#CCDDFF; text-decoration:none;">Home</a>
+      &nbsp;|&nbsp;<a href="rss-screen-2-dashboard.html" style="color:#CCDDFF; text-decoration:none;">Market Feed</a>
+      &nbsp;|&nbsp;<a href="rss-screen-3-mint.html" style="color:#CCDDFF; text-decoration:none;">Execute</a>
+      &nbsp;|&nbsp;<a href="rss-screen-4-gallery.html" style="color:#CCDDFF; text-decoration:none;">Manifest</a>
+      &nbsp;|&nbsp;<a href="rss-screen-5-lore.html" style="color:#CCDDFF; text-decoration:none;">Databank</a>
+      &nbsp;|&nbsp;<a href="rss-screen-6-strategy.html" style="color:#FFFFFF; text-decoration:none; font-weight:bold;">Strategy</a>
+      &nbsp;|&nbsp;<a href="rss-screen-7-profile.html" style="color:#CCDDFF; text-decoration:none;">Agent Profile</a>
+      &nbsp;
+    </td>
+    <td align="right" style="font-size:10px; padding-right:8px;">
+      <span style="background:#EE802F; color:#FFF; padding:1px 5px; font-weight:bold; font-size:9px;">RSS</span>
+    </td>
+  </tr>
+  </table>
+
+  <!-- BREADCRUMB -->
+  <table width="760" bgcolor="#F5F5F5" border="0" cellpadding="4" cellspacing="0" style="border-bottom:1px solid #CCCCCC;">
+  <tr>
+    <td style="font-size:10px; color:#666; padding-left:14px;">
+      <a href="rss-screen-1-splash.html">Home</a> &rsaquo; <strong>Strategy Optimization</strong>
+      &nbsp;&mdash;&nbsp; Agent: R2-AGENT-0001 &nbsp;|&nbsp; Strategy v1.4 &nbsp;|&nbsp; Last saved: 04/03/2026
+    </td>
+  </tr>
+  </table>
+
+  <!-- ═══ 2-COLUMN CONTENT ═══ -->
+  <table width="760" border="0" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+
+    <!-- FORM COLUMN (430px) -->
+    <td width="430" style="padding:16px 20px; border-right:1px solid #CCCCCC;">
+
+      <div class="section-header">Strategy Parameters</div>
+
+      <form method="post" action="#">
+      <table width="390" border="0" cellpadding="5" cellspacing="0">
+
+        <!-- Strategy Preset -->
+        <tr>
+          <td colspan="2">
+            <label>Strategy Preset</label><br>
+            <input type="radio" name="preset" value="conservative" id="pc"> <label for="pc" style="font-weight:normal;">Conservative (low risk, &lt;3% drawdown limit)</label><br>
+            <input type="radio" name="preset" value="balanced" id="pb" checked> <label for="pb" style="font-weight:normal;">Balanced (medium risk, 3–7% drawdown)</label><br>
+            <input type="radio" name="preset" value="aggressive" id="pa"> <label for="pa" style="font-weight:normal;">Aggressive (high risk, no drawdown limit)</label><br>
+            <input type="radio" name="preset" value="sniper" id="ps"> <label for="ps" style="font-weight:normal;">Sniper Mode (floor-break triggers only)</label>
+          </td>
+        </tr>
+
+        <tr><td colspan="2"><hr size="1" color="#EEEEEE"></td></tr>
+
+        <!-- Floor Trigger -->
+        <tr>
+          <td width="200" valign="top"><label>Floor Trigger (%)</label></td>
+          <td>
+            <input type="text" name="floor_trigger" value="12.4" size="8">
+            <div class="field-hint">Bid fires when floor drops by this % within 72h window.</div>
+          </td>
+        </tr>
+
+        <!-- Ceiling Cap -->
+        <tr>
+          <td valign="top"><label>Ceiling Cap (% above floor)</label></td>
+          <td>
+            <input type="text" name="ceiling" value="22" size="8">
+            <div class="field-hint">Auto-ask placed this % above acquisition price.</div>
+          </td>
+        </tr>
+
+        <!-- Max Bid -->
+        <tr>
+          <td valign="top"><label>Max Bid per Asset (ETH)</label></td>
+          <td>
+            <input type="text" name="max_bid" value="0.015" size="10">
+            <div class="field-hint">Hard cap per individual asset acquisition.</div>
+          </td>
+        </tr>
+
+        <!-- Max Concurrent -->
+        <tr>
+          <td valign="top"><label>Max Concurrent Holdings</label></td>
+          <td>
+            <select name="max_hold">
+              <option>3</option>
+              <option>5</option>
+              <option selected>10</option>
+              <option>25</option>
+              <option>Unlimited</option>
+            </select>
+            <div class="field-hint">Agent pauses bidding when holding limit reached.</div>
+          </td>
+        </tr>
+
+        <!-- Auto-Relist -->
+        <tr>
+          <td valign="top"><label>Auto-Relist on Profit</label></td>
+          <td>
+            <input type="checkbox" name="autorelist" id="ar" checked>
+            <label for="ar" style="font-weight:normal;">Enable (relist immediately after ceiling ask fills)</label>
+          </td>
+        </tr>
+
+        <!-- Watchlist -->
+        <tr>
+          <td valign="top"><label>Watchlist Max</label></td>
+          <td>
+            <select name="watchlist_max">
+              <option>1</option>
+              <option>3</option>
+              <option selected>5</option>
+              <option>10</option>
+            </select>
+            <div class="field-hint">Max simultaneous collections monitored.</div>
+          </td>
+        </tr>
+
+        <tr><td colspan="2" height="8"></td></tr>
+
+        <!-- Save -->
+        <tr>
+          <td colspan="2">
+            <input type="submit" value="  Save Strategy &rsaquo;&rsaquo;  "
+              style="font-family:Verdana,sans-serif; font-size:12px; font-weight:bold;
+                background:#003399; color:#FFFFFF; border:2px outset #6688CC;
+                padding:4px 12px; cursor:pointer;">
+            &nbsp;
+            <input type="reset" value="Reset to Defaults"
+              style="font-family:Verdana,sans-serif; font-size:11px;
+                border:1px solid #999; padding:3px 8px; cursor:pointer;">
+          </td>
+        </tr>
+
+      </table>
+      </form>
+
+    </td>
+
+    <!-- SUMMARY PANEL (330px) -->
+    <td width="330" bgcolor="#F8F8F8" style="padding:16px 14px;">
+
+      <div class="section-header">Current Config Summary</div>
+      <table width="300" border="1" cellpadding="4" cellspacing="0" bordercolor="#CCCCCC" bgcolor="#FFFFFF"
+             style="border-collapse:collapse; margin-bottom:14px;" class="stat-row">
+        <tr><td style="color:#666;">Preset:</td><td><strong>Balanced</strong></td></tr>
+        <tr><td style="color:#666;">Floor Trigger:</td><td>12.4% drop</td></tr>
+        <tr><td style="color:#666;">Ceiling Cap:</td><td>+22% above floor</td></tr>
+        <tr><td style="color:#666;">Max Bid:</td><td>0.015 ETH</td></tr>
+        <tr><td style="color:#666;">Max Holdings:</td><td>10 assets</td></tr>
+        <tr><td style="color:#666;">Auto-Relist:</td><td style="color:#006600;">Enabled</td></tr>
+        <tr><td style="color:#666;">Watchlist:</td><td>5 collections</td></tr>
+      </table>
+
+      <div class="section-header">Projected Yield</div>
+      <table width="300" border="0" cellpadding="4" cellspacing="0" style="margin-bottom:14px;">
+        <tr>
+          <td style="font-size:10px; color:#666; width:120px;">7-day (est.):</td>
+          <td style="font-size:11px; color:#006600; font-weight:bold;">+0.0031 ETH (4.2%)</td>
+        </tr>
+        <tr>
+          <td style="font-size:10px; color:#666;">30-day (est.):</td>
+          <td style="font-size:11px; color:#006600; font-weight:bold;">+0.0118 ETH (16.1%)</td>
+        </tr>
+        <tr>
+          <td style="font-size:10px; color:#666;">Max drawdown:</td>
+          <td style="font-size:11px; color:#CC6600; font-weight:bold;">-0.008 ETH (7%)</td>
+        </tr>
+        <tr>
+          <td style="font-size:10px; color:#666;">Win rate (30d):</td>
+          <td style="font-size:11px; font-weight:bold;">71%</td>
+        </tr>
+        <tr>
+          <td colspan="2" height="6"></td>
+        </tr>
+        <tr>
+          <td style="font-size:10px; color:#666;">Aggression:</td>
+          <td>
+            <div class="bar-container"><div class="bar-fill" style="width:55%;"></div></div>
+            <span style="font-size:9px; color:#666;">55% (Balanced)</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-size:10px; color:#666;">Risk Level:</td>
+          <td>
+            <div class="bar-container"><div class="bar-fill" style="width:40%; background:#CC6600;"></div></div>
+            <span style="font-size:9px; color:#666;">40% (Medium)</span>
+          </td>
+        </tr>
+      </table>
+
+      <div class="section-header">Recent Strategy Changes</div>
+      <table width="300" border="0" cellpadding="3" cellspacing="0">
+        <tr><td style="font-size:9px; color:#666; border-bottom:1px dotted #CCC; padding-bottom:3px;">04/03 — Floor trigger adjusted 10% &rarr; 12.4%</td></tr>
+        <tr><td style="font-size:9px; color:#666; border-bottom:1px dotted #CCC; padding:3px 0;">01/03 — Strategy v1.4 engine applied</td></tr>
+        <tr><td style="font-size:9px; color:#666; padding-top:3px;">28/02 — Watchlist expanded to 5 collections</td></tr>
+      </table>
+
+    </td>
+
+  </tr>
+  </table>
+
+  <!-- FOOTER -->
+  <table width="760" bgcolor="#F5F5F5" border="0" cellpadding="6" cellspacing="0" style="border-top:2px solid #CCCCCC;">
+  <tr>
+    <td style="font-size:10px; color:#999;">&copy; 2026 R2-Systems Corp. All rights reserved.</td>
+    <td align="right" style="font-size:10px; color:#999;">
+      <a href="#">RSS Feed</a> &bull; <a href="#">Sitemap</a> &bull; <a href="#">Contact</a>
+    </td>
+  </tr>
+  </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>

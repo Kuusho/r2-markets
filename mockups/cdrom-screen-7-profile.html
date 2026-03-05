@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: STRATEGOS — AGENT PROFILE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root {
+      --void:#000; --bg:#080814; --bevel-hi:#3a3a5a; --bevel-lo:#050510;
+      --amber:#FF6A00; --amber-dim:#994000; --blue:#0088FF;
+      --green:#00CC44; --red:#CC2200; --gold:#FFCC44; --data:#88AACC; --dim:rgba(136,170,204,0.3);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:var(--void); width:100vw; height:100vh;
+      display:flex; align-items:center; justify-content:center; overflow:hidden;
+      font-family:'Share Tech Mono',monospace;
+      cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cline x1='10' y1='0' x2='10' y2='7' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='10' y1='13' x2='10' y2='20' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='0' y1='10' x2='7' y2='10' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='13' y1='10' x2='20' y2='10' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Ccircle cx='10' cy='10' r='2.5' stroke='%23FF6A00' stroke-width='1' fill='none'/%3E%3C/svg%3E") 10 10, crosshair;
+    }
+    .viewport {
+      width:800px; height:600px; overflow:hidden; position:relative; background:var(--bg);
+      border-top:3px solid var(--bevel-hi); border-left:3px solid var(--bevel-hi);
+      border-right:3px solid var(--bevel-lo); border-bottom:3px solid var(--bevel-lo);
+    }
+    .metal-noise {
+      position:absolute; inset:0; pointer-events:none; z-index:5;
+      background:repeating-linear-gradient(180deg,transparent 0,transparent 2px,rgba(255,255,255,0.007) 2px,rgba(255,255,255,0.007) 3px);
+    }
+    .chrome-top {
+      position:absolute; top:0; left:0; right:0; height:30px; z-index:30;
+      background:repeating-linear-gradient(180deg,#1e1e3a 0,#1e1e3a 1px,#161628 1px,#161628 2px);
+      border-bottom:2px solid var(--bevel-lo);
+      display:flex; align-items:center; padding:0 10px; gap:8px;
+    }
+    .c-dot { width:8px; height:8px; }
+    .c-dot.on { background:var(--amber); box-shadow:0 0 5px var(--amber); }
+    .c-dot.off { background:#1a1a28; border:1px solid #0a0a16; }
+    .c-lbl { font-size:9px; letter-spacing:0.22em; color:var(--dim); }
+    .c-r { margin-left:auto; font-size:8px; letter-spacing:0.12em; color:var(--dim); }
+    .chrome-bot {
+      position:absolute; bottom:0; left:0; right:0; height:26px; z-index:30;
+      background:repeating-linear-gradient(180deg,#161628 0,#161628 1px,#1e1e3a 1px,#1e1e3a 2px);
+      border-top:2px solid var(--bevel-lo);
+      display:flex; align-items:center; padding:0 10px; gap:20px;
+    }
+    .s-item { display:flex; align-items:center; gap:5px; font-size:8px; letter-spacing:0.16em; color:var(--dim); }
+    .s-led { width:5px; height:5px; }
+    .s-led.g { background:var(--green); box-shadow:0 0 4px var(--green); }
+    .s-led.a { background:var(--amber); box-shadow:0 0 4px var(--amber); }
+
+    /* ── LAYOUT ── */
+    .layout {
+      position:absolute; top:30px; bottom:26px; left:0; right:0;
+      display:grid; grid-template-columns:220px 1fr 200px; grid-template-rows:1fr;
+    }
+    .panel {
+      background:repeating-linear-gradient(180deg,#0c0c1e 0,#0c0c1e 1px,#0e0e22 1px,#0e0e22 2px);
+    }
+
+    /* ── LEFT: System controls ── */
+    .sys-panel { border-right:2px solid var(--bevel-lo); padding:10px; display:flex; flex-direction:column; gap:8px; }
+    .sp-title { font-size:7px; letter-spacing:0.35em; color:var(--amber-dim); border-bottom:1px solid var(--bevel-lo); padding-bottom:4px; }
+    .sp-block { padding:6px; border-top:1px solid var(--bevel-lo); border-left:1px solid var(--bevel-lo); border-right:1px solid var(--bevel-hi); border-bottom:1px solid var(--bevel-hi); }
+    .spb-lbl { font-size:6px; letter-spacing:0.22em; color:var(--dim); margin-bottom:2px; }
+    .spb-val { font-size:11px; color:var(--gold); }
+    .spb-val.g { color:var(--green); } .spb-val.a { color:var(--amber); } .spb-val.d { font-size:9px; color:var(--dim); }
+
+    /* Analog dial (SVG, static) */
+    .dial-row { display:flex; gap:8px; justify-content:center; margin-top:4px; }
+    .dial-wrap { display:flex; flex-direction:column; align-items:center; gap:3px; }
+    .dial-lbl { font-size:6px; letter-spacing:0.15em; color:var(--dim); }
+
+    /* Toggle rows */
+    .tg-section { display:flex; flex-direction:column; gap:5px; }
+    .toggle-row { display:flex; align-items:center; gap:6px; }
+    .toggle { width:28px; height:14px; position:relative; background:#08080f; border-top:1px solid var(--bevel-lo); border-left:1px solid var(--bevel-lo); border-right:1px solid var(--bevel-hi); border-bottom:1px solid var(--bevel-hi); }
+    .toggle-knob { position:absolute; top:1px; width:12px; height:10px; border-top:1px solid var(--bevel-hi); border-left:1px solid var(--bevel-hi); border-right:1px solid var(--bevel-lo); border-bottom:1px solid var(--bevel-lo); }
+    .toggle.on { background:rgba(0,204,68,0.08); }
+    .toggle.on .toggle-knob { right:1px; background:#002a10; border-top-color:var(--green); border-left-color:var(--green); }
+    .toggle.off .toggle-knob { left:1px; background:#1a1a28; }
+    .tg-lbl { font-size:7px; letter-spacing:0.12em; color:var(--dim); }
+    .tg-val { margin-left:auto; font-size:7px; }
+    .tg-val.g { color:var(--green); } .tg-val.d { color:var(--dim); }
+
+    /* ── CENTER: Pedestal stage ── */
+    .stage-area {
+      position:relative; overflow:hidden;
+      background:repeating-linear-gradient(180deg,#080810 0,#080810 1px,#09090f 1px,#09090f 2px);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .stage-label { position:absolute; top:10px; left:50%; transform:translateX(-50%); font-size:8px; letter-spacing:0.35em; color:var(--amber-dim); white-space:nowrap; }
+    .stage-name { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); font-family:'Orbitron',sans-serif; font-size:14px; font-weight:700; color:var(--gold); letter-spacing:0.05em; white-space:nowrap; }
+    .stage-sub { position:absolute; bottom:26px; left:50%; transform:translateX(-50%); font-size:8px; letter-spacing:0.25em; color:var(--amber); white-space:nowrap; }
+
+    /* Stat bars along sides of stage */
+    .stage-bars-l { position:absolute; left:12px; top:40px; bottom:60px; width:24px; display:flex; flex-direction:column; gap:4px; justify-content:center; }
+    .stage-bars-r { position:absolute; right:12px; top:40px; bottom:60px; width:24px; display:flex; flex-direction:column; gap:4px; justify-content:center; }
+    .sbar-wrap { display:flex; flex-direction:column; align-items:center; gap:2px; }
+    .sbar-lbl { font-size:5px; letter-spacing:0.1em; color:var(--dim); writing-mode:vertical-rl; transform:rotate(180deg); }
+    .sbar-track { flex:1; width:8px; background:#08080f; border-top:1px solid var(--bevel-lo); border-left:1px solid var(--bevel-lo); border-right:1px solid var(--bevel-hi); border-bottom:1px solid var(--bevel-hi); position:relative; display:flex; flex-direction:column-reverse; align-items:stretch; height:60px; }
+    .sbar-fill { background:var(--amber); }
+    .sbar-fill.g { background:var(--green); }
+
+    /* ── RIGHT: Unit stats ── */
+    .stats-panel { border-left:2px solid var(--bevel-lo); padding:10px; display:flex; flex-direction:column; gap:6px; }
+    .rp-title { font-size:7px; letter-spacing:0.35em; color:var(--amber-dim); border-bottom:1px solid var(--bevel-lo); padding-bottom:4px; }
+    .rp-block { padding:5px 6px; border-top:1px solid var(--bevel-lo); border-left:1px solid var(--bevel-lo); border-right:1px solid var(--bevel-hi); border-bottom:1px solid var(--bevel-hi); margin-bottom:2px; }
+    .rpb-lbl { font-size:6px; letter-spacing:0.22em; color:var(--dim); margin-bottom:2px; }
+    .rpb-val { font-size:10px; color:var(--gold); }
+    .rpb-val.g { color:var(--green); } .rpb-val.a { color:var(--amber); } .rpb-val.d { font-size:8px; color:var(--dim); }
+
+    /* Confirm button */
+    .confirm-btn {
+      width:100%; height:36px; margin-top:auto;
+      background:linear-gradient(180deg,#003300,#001e00);
+      border-top:2px solid var(--green); border-left:2px solid var(--green);
+      border-right:2px solid #006622; border-bottom:2px solid #006622;
+      cursor:pointer; font-family:'Orbitron',sans-serif; font-size:9px;
+      font-weight:700; letter-spacing:0.18em; color:var(--green);
+      transition:background 0.08s, color 0.08s;
+    }
+    .confirm-btn:hover { background:linear-gradient(180deg,#005500,#003300); color:#88FF88; }
+    .confirm-btn:active { border-top-color:#006622; border-left-color:#006622; border-right-color:var(--green); border-bottom-color:var(--green); }
+  </style>
+</head>
+<body>
+<div class="viewport">
+  <div class="metal-noise"></div>
+
+  <div class="chrome-top">
+    <div class="c-dot on"></div><div class="c-dot off"></div><div class="c-dot off"></div>
+    <span class="c-lbl">AGENT PROFILE // UNIT SELECT // R2-ALPHA-01</span>
+    <span class="c-r">CLASS: BIDDER MK.II // CLEARANCE: LVL.4</span>
+  </div>
+  <div class="chrome-bot">
+    <span class="s-item"><span class="s-led g"></span>UNIT ACTIVE</span>
+    <span class="s-item"><span class="s-led g"></span>SYSTEMS NOMINAL</span>
+    <span class="s-item"><span class="s-led a"></span>AUTH PENDING</span>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: System controls -->
+    <div class="panel sys-panel">
+      <div class="sp-title">// SYSTEM CONTROL</div>
+      <div class="sp-block"><div class="spb-lbl">UNIT</div><div class="spb-val">R2-ALPHA-01</div></div>
+      <div class="sp-block"><div class="spb-lbl">CLASS</div><div class="spb-val a">BIDDER MK.II</div></div>
+      <div class="sp-block"><div class="spb-lbl">CLEARANCE</div><div class="spb-val a">LEVEL 4</div></div>
+      <div class="sp-block"><div class="spb-lbl">WALLET</div><div class="spb-val d" style="font-size:7px;">0xCC4F9A...3E1B</div></div>
+
+      <!-- Analog dials (SVG, static — no filter) -->
+      <div class="sp-title">// ANALOG GAUGES</div>
+      <div class="dial-row">
+        <div class="dial-wrap">
+          <svg width="52" height="52" viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="22" fill="#0a0a14" stroke="#1a1a2e" stroke-width="2"/>
+            <!-- Tick marks -->
+            <line x1="26" y1="6" x2="26" y2="10" stroke="#2a2a3e" stroke-width="1"/>
+            <line x1="46" y1="26" x2="42" y2="26" stroke="#2a2a3e" stroke-width="1"/>
+            <line x1="6" y1="26" x2="10" y2="26" stroke="#2a2a3e" stroke-width="1"/>
+            <line x1="26" y1="46" x2="26" y2="42" stroke="#2a2a3e" stroke-width="1"/>
+            <!-- Needle pointing to 80% (about 7 o'clock to 4 o'clock sweep, at ~70% = roughly 2 o'clock) -->
+            <line x1="26" y1="26" x2="36" y2="12" stroke="#FF6A00" stroke-width="2"/>
+            <circle cx="26" cy="26" r="3" fill="#2a2a3e"/>
+            <circle cx="26" cy="26" r="1.5" fill="#FF6A00"/>
+            <!-- Scale arc outline -->
+            <path d="M 8,38 A 22,22 0 0,1 44,38" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+          </svg>
+          <div class="dial-lbl">BID AGG.</div>
+        </div>
+        <div class="dial-wrap">
+          <svg width="52" height="52" viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="22" fill="#0a0a14" stroke="#1a1a2e" stroke-width="2"/>
+            <line x1="26" y1="6" x2="26" y2="10" stroke="#2a2a3e" stroke-width="1"/>
+            <line x1="46" y1="26" x2="42" y2="26" stroke="#2a2a3e" stroke-width="1"/>
+            <line x1="6" y1="26" x2="10" y2="26" stroke="#2a2a3e" stroke-width="1"/>
+            <line x1="26" y1="46" x2="26" y2="42" stroke="#2a2a3e" stroke-width="1"/>
+            <!-- Needle at ~90% -->
+            <line x1="26" y1="26" x2="40" y2="16" stroke="#00CC44" stroke-width="2"/>
+            <circle cx="26" cy="26" r="3" fill="#2a2a3e"/>
+            <circle cx="26" cy="26" r="1.5" fill="#00CC44"/>
+            <path d="M 8,38 A 22,22 0 0,1 44,38" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+          </svg>
+          <div class="dial-lbl">WIN RATE</div>
+        </div>
+        <div class="dial-wrap">
+          <svg width="52" height="52" viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="22" fill="#0a0a14" stroke="#1a1a2e" stroke-width="2"/>
+            <line x1="26" y1="6" x2="26" y2="10" stroke="#2a2a3e" stroke-width="1"/>
+            <line x1="46" y1="26" x2="42" y2="26" stroke="#2a2a3e" stroke-width="1"/>
+            <line x1="6" y1="26" x2="10" y2="26" stroke="#2a2a3e" stroke-width="1"/>
+            <line x1="26" y1="46" x2="26" y2="42" stroke="#2a2a3e" stroke-width="1"/>
+            <!-- Needle at ~30% -->
+            <line x1="26" y1="26" x2="14" y2="16" stroke="#0088FF" stroke-width="2"/>
+            <circle cx="26" cy="26" r="3" fill="#2a2a3e"/>
+            <circle cx="26" cy="26" r="1.5" fill="#0088FF"/>
+            <path d="M 8,38 A 22,22 0 0,1 44,38" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+          </svg>
+          <div class="dial-lbl">GAS USAGE</div>
+        </div>
+      </div>
+
+      <div class="sp-title">// MODE FLAGS</div>
+      <div class="tg-section">
+        <div class="toggle-row"><div class="toggle on"><div class="toggle-knob"></div></div><span class="tg-lbl">SNIPE</span><span class="tg-val g">ON</span></div>
+        <div class="toggle-row"><div class="toggle on"><div class="toggle-knob"></div></div><span class="tg-lbl">RARITY AI</span><span class="tg-val g">ON</span></div>
+        <div class="toggle-row"><div class="toggle on"><div class="toggle-knob"></div></div><span class="tg-lbl">AUTO-RETRY</span><span class="tg-val g">ON</span></div>
+        <div class="toggle-row"><div class="toggle off"><div class="toggle-knob"></div></div><span class="tg-lbl">MULTI-TX</span><span class="tg-val d">OFF</span></div>
+        <div class="toggle-row"><div class="toggle off"><div class="toggle-knob"></div></div><span class="tg-lbl">FLASH BRIBE</span><span class="tg-val d">OFF</span></div>
+      </div>
+    </div>
+
+    <!-- CENTER: Stage with isometric pedestal -->
+    <div class="stage-area">
+      <div class="stage-label">// UNIT INSPECTION // ROTATE TO VIEW</div>
+
+      <!-- Left stat bars -->
+      <div class="stage-bars-l">
+        <div class="sbar-wrap" style="flex:1;">
+          <div class="sbar-track"><div class="sbar-fill" style="height:80%;"></div></div>
+          <div class="sbar-lbl">SPD</div>
+        </div>
+        <div class="sbar-wrap" style="flex:1;">
+          <div class="sbar-track"><div class="sbar-fill g" style="height:91%;"></div></div>
+          <div class="sbar-lbl">ACC</div>
+        </div>
+        <div class="sbar-wrap" style="flex:1;">
+          <div class="sbar-track"><div class="sbar-fill" style="height:70%;"></div></div>
+          <div class="sbar-lbl">PWR</div>
+        </div>
+      </div>
+
+      <!-- Right stat bars -->
+      <div class="stage-bars-r">
+        <div class="sbar-wrap" style="flex:1;">
+          <div class="sbar-track"><div class="sbar-fill g" style="height:95%;"></div></div>
+          <div class="sbar-lbl">INT</div>
+        </div>
+        <div class="sbar-wrap" style="flex:1;">
+          <div class="sbar-track"><div class="sbar-fill" style="height:60%;"></div></div>
+          <div class="sbar-lbl">DEF</div>
+        </div>
+        <div class="sbar-wrap" style="flex:1;">
+          <div class="sbar-track"><div class="sbar-fill g" style="height:85%;"></div></div>
+          <div class="sbar-lbl">SIG</div>
+        </div>
+      </div>
+
+      <!-- Isometric pedestal + mech SVG — no blur filters -->
+      <svg width="280" height="400" viewBox="0 0 280 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Floor grid (isometric) -->
+        <line x1="40" y1="360" x2="240" y2="360" stroke="#0a1a0a" stroke-width="1" opacity="0.6"/>
+        <line x1="60" y1="340" x2="260" y2="340" stroke="#0a1a0a" stroke-width="1" opacity="0.4"/>
+        <line x1="20" y1="340" x2="140" y2="395" stroke="#0a1a0a" stroke-width="1" opacity="0.3"/>
+        <line x1="140" y1="340" x2="260" y2="395" stroke="#0a1a0a" stroke-width="1" opacity="0.3"/>
+
+        <!-- Pedestal top face -->
+        <polygon points="90,330 190,330 230,350 140,370 50,350" fill="#0f1a12" stroke="#1a3a1a" stroke-width="1.5"/>
+        <!-- Pedestal left face -->
+        <polygon points="50,350 90,330 90,360 50,380" fill="#08100a" stroke="#0e2010" stroke-width="1"/>
+        <!-- Pedestal right face -->
+        <polygon points="190,330 230,350 230,380 190,360" fill="#0a1208" stroke="#102010" stroke-width="1"/>
+        <!-- Pedestal front face -->
+        <polygon points="50,380 90,360 190,360 230,380 140,400 50,380" fill="#0c1a0e" stroke="#143014" stroke-width="1"/>
+
+        <!-- Mech body standing on pedestal -->
+        <!-- Legs -->
+        <rect x="105" y="280" width="20" height="44" fill="#0a0a10" stroke="#FF6A00" stroke-width="1.5"/>
+        <rect x="155" y="280" width="20" height="44" fill="#0a0a10" stroke="#FF6A00" stroke-width="1.5"/>
+        <!-- Feet -->
+        <rect x="100" y="322" width="28" height="12" fill="#0a0a10" stroke="#FF6A00" stroke-width="1.5"/>
+        <rect x="152" y="322" width="28" height="12" fill="#0a0a10" stroke="#FF6A00" stroke-width="1.5"/>
+        <!-- Knee joints -->
+        <rect x="107" y="298" width="16" height="8" fill="#1a1a28" stroke="#994000" stroke-width="1"/>
+        <rect x="157" y="298" width="16" height="8" fill="#1a1a28" stroke="#994000" stroke-width="1"/>
+        <!-- Torso -->
+        <rect x="95" y="195" width="90" height="88" fill="#0a0a10" stroke="#FF6A00" stroke-width="2"/>
+        <!-- Chest panels -->
+        <rect x="106" y="206" width="28" height="22" fill="#0f0f1e" stroke="#994000" stroke-width="1"/>
+        <rect x="146" y="206" width="28" height="22" fill="#0f0f1e" stroke="#994000" stroke-width="1"/>
+        <!-- Core light — hard colored square, NO filter -->
+        <rect x="129" y="240" width="22" height="22" fill="#001800" stroke="#00CC44" stroke-width="2"/>
+        <rect x="135" y="246" width="10" height="10" fill="#00CC44"/>
+        <!-- Torso chamfers -->
+        <line x1="95" y1="200" x2="101" y2="195" stroke="#FFCC44" stroke-width="1"/>
+        <line x1="185" y1="195" x2="179" y2="200" stroke="#FFCC44" stroke-width="1"/>
+        <!-- Shoulders / Arms -->
+        <rect x="60" y="200" width="28" height="60" fill="#0a0a10" stroke="#FF6A00" stroke-width="1.5"/>
+        <circle cx="91" cy="220" r="7" fill="#0f0f1e" stroke="#FF6A00" stroke-width="1"/>
+        <rect x="192" y="200" width="28" height="60" fill="#0a0a10" stroke="#FF6A00" stroke-width="1.5"/>
+        <circle cx="189" cy="220" r="7" fill="#0f0f1e" stroke="#FF6A00" stroke-width="1"/>
+        <!-- Hands -->
+        <rect x="58" y="260" width="30" height="18" fill="#0a0a10" stroke="#FF6A00" stroke-width="1"/>
+        <rect x="192" y="260" width="30" height="18" fill="#0a0a10" stroke="#FF6A00" stroke-width="1"/>
+        <!-- Neck -->
+        <rect x="124" y="178" width="32" height="18" fill="#0a0a10" stroke="#FF6A00" stroke-width="1"/>
+        <line x1="132" y1="182" x2="132" y2="192" stroke="#994000" stroke-width="0.8"/>
+        <line x1="140" y1="182" x2="140" y2="192" stroke="#994000" stroke-width="0.8"/>
+        <line x1="148" y1="182" x2="148" y2="192" stroke="#994000" stroke-width="0.8"/>
+        <!-- Head -->
+        <rect x="100" y="118" width="80" height="62" fill="#0a0a10" stroke="#FF6A00" stroke-width="2"/>
+        <!-- Eyes — indexed color change, NO filter glow -->
+        <rect x="112" y="132" width="20" height="12" fill="#003300" stroke="#00CC44" stroke-width="1.5"/>
+        <rect x="112" y="132" width="20" height="12" fill="#00CC44" opacity="0.5"/>
+        <rect x="148" y="132" width="20" height="12" fill="#003300" stroke="#00CC44" stroke-width="1.5"/>
+        <rect x="148" y="132" width="20" height="12" fill="#00CC44" opacity="0.5"/>
+        <!-- Mouth grill -->
+        <line x1="112" y1="154" x2="168" y2="154" stroke="#994000" stroke-width="1"/>
+        <line x1="112" y1="160" x2="168" y2="160" stroke="#994000" stroke-width="1"/>
+        <!-- Antenna -->
+        <line x1="140" y1="118" x2="140" y2="104" stroke="#FFCC44" stroke-width="2"/>
+        <rect x="136" y="100" width="8" height="6" fill="#FFCC44"/>
+        <!-- Head chamfers -->
+        <line x1="100" y1="123" x2="106" y2="118" stroke="#FFCC44" stroke-width="1"/>
+        <line x1="180" y1="118" x2="174" y2="123" stroke="#FFCC44" stroke-width="1"/>
+        <!-- Measurement lines -->
+        <line x1="56" y1="118" x2="56" y2="283" stroke="#1a2a1a" stroke-width="0.8"/>
+        <line x1="52" y1="118" x2="60" y2="118" stroke="#1a2a1a" stroke-width="0.8"/>
+        <line x1="52" y1="283" x2="60" y2="283" stroke="#1a2a1a" stroke-width="0.8"/>
+        <text x="50" y="202" fill="#1a3a1a" font-size="7" text-anchor="middle" transform="rotate(-90 50 202)">2.1m</text>
+      </svg>
+
+      <div class="stage-name">R2-ALPHA-01</div>
+      <div class="stage-sub">BIDDER MK.II // ACTIVE</div>
+    </div>
+
+    <!-- RIGHT: Stats panel -->
+    <div class="panel stats-panel">
+      <div class="rp-title">// UNIT STATS</div>
+      <div class="rp-block"><div class="rpb-lbl">TX TODAY</div><div class="rpb-val">1,204</div></div>
+      <div class="rp-block"><div class="rpb-lbl">WIN RATE</div><div class="rpb-val g">91.2%</div></div>
+      <div class="rp-block"><div class="rpb-lbl">P&amp;L TOTAL</div><div class="rpb-val g">+Ξ12.34</div></div>
+      <div class="rp-block"><div class="rpb-lbl">UPTIME</div><div class="rpb-val">14d 6h</div></div>
+      <div class="rp-block"><div class="rpb-lbl">SNIPE LAT</div><div class="rpb-val a">147ms</div></div>
+      <div class="rp-block"><div class="rpb-lbl">WALLET</div><div class="rpb-val g">Ξ 2.340</div></div>
+      <div class="rp-block"><div class="rpb-lbl">CLEARANCE</div><div class="rpb-val a">LEVEL 4</div></div>
+      <div class="rp-block"><div class="rpb-lbl">SKILLS</div><div class="rpb-val">9 / 14</div></div>
+      <div class="rp-block"><div class="rpb-lbl">NET</div><div class="rpb-val d">BASE MAINNET</div></div>
+      <div class="rp-block"><div class="rpb-lbl">BUILD</div><div class="rpb-val d">2047.03.01</div></div>
+      <div class="rp-block"><div class="rpb-lbl">STATUS</div><div class="rpb-val g">ACTIVE</div></div>
+
+      <button class="confirm-btn">▶ CONFIRM LOADOUT</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R2 Markets — Asset Directory</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    button { background: none; border: none; padding: 0; margin: 0; font: inherit; cursor: pointer; outline: none; }
+
+    body {
+      background: #0A304E;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Tahoma', 'MS Sans Serif', Arial, sans-serif;
+      position: relative;
+    }
+
+    /* Scanline overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 3px,
+        rgba(0, 0, 0, 0.2) 3px,
+        rgba(0, 0, 0, 0.2) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Win9x window on deep blue bg */
+    .window {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 920px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      box-shadow: 1px 1px 0 #000000;
+    }
+
+    .title-bar {
+      background: #003399;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      gap: 6px;
+    }
+
+    .title-bar-text {
+      flex: 1;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: #ffffff;
+      letter-spacing: 0.04em;
+    }
+
+    .title-bar-btn {
+      width: 18px;
+      height: 18px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    /* Horizontal tabs — OS folder metaphor */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      padding: 4px 8px 0;
+      background: #C0C0C0;
+      border-bottom: 2px solid #808080;
+    }
+
+    .tab {
+      padding: 4px 20px;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      position: relative;
+      bottom: -2px;
+      background: #C0C0C0;
+      color: #000;
+    }
+
+    .tab.active {
+      background: #C0C0C0;
+      border-bottom: 2px solid #C0C0C0;
+      color: #000;
+      font-family: 'VT323', monospace;
+      z-index: 2;
+    }
+
+    .tab:not(.active) {
+      background: #A0A0A0;
+      color: #606060;
+    }
+
+    /* Main body: left = main image, right = metadata */
+    .window-body {
+      padding: 16px;
+      display: flex;
+      gap: 16px;
+    }
+
+    /* Main image column */
+    .main-image-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* 1:1 square bounding box: no rounded corners, 1px black border, nearest-neighbor rendering */
+    .main-image-box {
+      width: 300px;
+      height: 300px;
+      border: 1px solid #000000;
+      background: #001428;
+      overflow: hidden;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      flex-shrink: 0;
+    }
+
+    /* Carousel row */
+    .carousel-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 300px;
+    }
+
+    /* Arrow: low-poly isometric triangle (SVG) */
+    .carousel-arrow {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    /* Thumbnail containers: exactly 32x32, 1px wireframe border */
+    .thumbnail-strip {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .thumb {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #000;
+      background: #0A304E;
+      flex-shrink: 0;
+      image-rendering: pixelated;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .thumb.active {
+      border: 1px solid #ffffff;
+      outline: 1px solid #000;
+    }
+
+    /* Metadata column */
+    .meta-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .meta-section {
+      background: #C0C0C0;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: inset 1px 1px #808080;
+      padding: 10px 12px;
+    }
+
+    .meta-title {
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: #000080;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #808080;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      padding: 2px 0;
+      border-bottom: 1px dashed #C0C0C0;
+    }
+
+    .meta-row:last-child { border-bottom: none; }
+
+    .meta-row .key { color: #404040; }
+    .meta-row .val { color: #000; }
+    .meta-row .val.price { color: #000080; }
+
+    /* Trait badges */
+    .trait-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .trait-badge {
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      padding: 4px 6px;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .trait-badge .trait-type {
+      color: #808080;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .trait-badge .trait-val {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: #000080;
+    }
+
+    /* Action buttons */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      flex: 2;
+      height: 36px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      height: 36px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Background desktop icons */
+    .desktop-icon {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-family: 'VT323', monospace;
+      font-size: 14px;
+      color: #ffffff;
+      text-shadow: 1px 1px #000;
+      width: 64px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .desktop-icon .icon-img {
+      width: 32px;
+      height: 32px;
+      background: #1338BE;
+      border: 1px solid rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    /* Taskbar */
+    .taskbar {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 32px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      gap: 4px;
+      z-index: 200;
+    }
+
+    .start-btn {
+      height: 24px;
+      padding: 0 8px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+
+    .taskbar-app {
+      height: 24px;
+      padding: 0 10px;
+      background: #C0C0C0;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+    }
+
+    .taskbar-clock {
+      margin-left: auto;
+      height: 24px;
+      padding: 0 8px;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Agent assignment tag */
+    .agent-tag {
+      display: inline-block;
+      background: #000080;
+      color: #fff;
+      font-family: 'VT323', monospace;
+      font-size: 14px;
+      padding: 2px 8px;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Desktop icons (behind window) -->
+  <div class="desktop-icon" style="top:24px; left:24px;">
+    <div class="icon-img">⬡</div>
+    <span>R2 Terminal</span>
+  </div>
+  <div class="desktop-icon" style="top:110px; left:24px;">
+    <div class="icon-img">📁</div>
+    <span>Assets</span>
+  </div>
+  <div class="desktop-icon" style="top:196px; left:24px;">
+    <div class="icon-img" style="background:#003399;">🔗</div>
+    <span>Base Chain</span>
+  </div>
+
+  <!-- Main window -->
+  <div class="window">
+    <!-- Title bar -->
+    <div class="title-bar">
+      <div class="title-bar-text">⬡ R2_MARKET_TERMINAL.EXE — ASSET DIRECTORY</div>
+      <button class="title-bar-btn">_</button>
+      <button class="title-bar-btn">□</button>
+      <button class="title-bar-btn">✕</button>
+    </div>
+
+    <!-- Horizontal tab folders -->
+    <div class="tab-bar">
+      <div class="tab active">OWNED (4)</div>
+      <div class="tab">MARKET (1,204)</div>
+      <div class="tab">WATCHLIST (12)</div>
+      <div class="tab">AGENT QUEUE (3)</div>
+    </div>
+
+    <!-- Window body -->
+    <div class="window-body">
+
+      <!-- Left: main image + carousel -->
+      <div class="main-image-col">
+
+        <!-- Main image: 1:1 square, nearest-neighbor, 1px black border -->
+        <div class="main-image-box">
+          <svg width="300" height="300" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg"
+               style="image-rendering:pixelated; display:block;">
+            <rect width="420" height="420" fill="#001428"/>
+
+            <!-- Pixel grid lines -->
+            <line x1="0" y1="210" x2="420" y2="210" stroke="#0d3d66" stroke-width="1" opacity="0.4"/>
+            <line x1="210" y1="0" x2="210" y2="420" stroke="#0d3d66" stroke-width="1" opacity="0.4"/>
+
+            <!-- Isometric R2-style data node — larger version -->
+            <!-- Isometric base -->
+            <polygon points="210,340 110,295 210,250 310,295" fill="#1338BE" stroke="#000" stroke-width="1"/>
+            <polygon points="110,295 110,320 210,365 210,340" fill="#0d2a8a" stroke="#000" stroke-width="1"/>
+            <polygon points="310,295 310,320 210,365 210,340" fill="#1a3fc4" stroke="#000" stroke-width="1"/>
+
+            <!-- Body main -->
+            <polygon points="210,145 140,178 210,211 280,178" fill="#C8C8C8" stroke="#000" stroke-width="1"/>
+            <polygon points="140,178 140,250 210,215 210,211" fill="#909090" stroke="#000" stroke-width="1"/>
+            <polygon points="280,178 280,250 210,215 210,211" fill="#B0B0B0" stroke="#000" stroke-width="1"/>
+
+            <!-- Body panel horizontal rule -->
+            <line x1="140" y1="210" x2="210" y2="213" stroke="#606060" stroke-width="1"/>
+            <line x1="280" y1="210" x2="210" y2="213" stroke="#606060" stroke-width="1"/>
+
+            <!-- Left body panel insets -->
+            <polygon points="148,200 170,190 170,214 148,224" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <polygon points="148,224 170,214 170,230 148,240" fill="#0d2a8a" stroke="#000" stroke-width="0.5"/>
+            <circle cx="159" cy="205" r="4" fill="#39FF14" stroke="#000" stroke-width="0.5"/>
+
+            <!-- Right body panel insets -->
+            <polygon points="250,187 272,177 272,200 250,210" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <polygon points="270,177 280,172 280,195 270,200" fill="#0d2a8a" stroke="#000" stroke-width="0.5"/>
+
+            <!-- Center status display -->
+            <rect x="190" y="194" width="40" height="24" fill="#000" stroke="#1338BE" stroke-width="1"/>
+            <rect x="192" y="196" width="10" height="7" fill="#39FF14"/>
+            <rect x="206" y="196" width="10" height="7" fill="#1338BE"/>
+            <rect x="192" y="207" width="36" height="4" fill="#1338BE" opacity="0.4"/>
+
+            <!-- Dome head -->
+            <ellipse cx="210" cy="138" rx="50" ry="18" fill="#D8D8D8" stroke="#000" stroke-width="1"/>
+            <path d="M160,138 Q160,90 210,83 Q260,90 260,138" fill="#B8B8B8" stroke="#000" stroke-width="1"/>
+            <!-- Blue dome stripe -->
+            <path d="M160,138 Q160,108 210,102 Q260,108 260,138" fill="none" stroke="#1338BE" stroke-width="4"/>
+            <!-- Secondary stripe -->
+            <path d="M160,138 Q160,122 210,116 Q260,122 260,138" fill="none" stroke="#C0C0C0" stroke-width="1" opacity="0.5"/>
+            <!-- Main lens -->
+            <ellipse cx="210" cy="128" rx="18" ry="11" fill="#39FF14" stroke="#000" stroke-width="1"/>
+            <ellipse cx="210" cy="128" rx="10" ry="6" fill="#000"/>
+            <ellipse cx="207" cy="126" rx="4" ry="3" fill="#39FF14" opacity="0.7"/>
+            <!-- Secondary lenses -->
+            <circle cx="180" cy="132" r="6" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <circle cx="180" cy="132" r="3" fill="#39FF14"/>
+            <circle cx="240" cy="132" r="6" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <circle cx="240" cy="132" r="3" fill="#39FF14"/>
+            <!-- Radar dish -->
+            <line x1="210" y1="83" x2="240" y2="60" stroke="#C0C0C0" stroke-width="2"/>
+            <circle cx="244" cy="57" r="5" fill="#C0C0C0" stroke="#000" stroke-width="1"/>
+            <circle cx="244" cy="57" r="2" fill="#39FF14"/>
+
+            <!-- Holographic projector effect -->
+            <polygon points="210,83 195,50 225,50" fill="#1338BE" stroke="#39FF14" stroke-width="0.5" opacity="0.6"/>
+            <circle cx="210" cy="46" r="4" fill="#39FF14" opacity="0.8"/>
+
+            <!-- Serial plate -->
+            <rect x="8" y="392" width="404" height="20" fill="#000"/>
+            <text x="210" y="406" text-anchor="middle" font-family="'VT323', monospace" font-size="14" fill="#39FF14" letter-spacing="3">R2-NODE · TOKEN #0042 · BASE:0x8f3a...c5e1</text>
+
+            <!-- Top-left badge -->
+            <rect x="8" y="8" width="90" height="20" fill="#000080"/>
+            <text x="53" y="22" text-anchor="middle" font-family="'VT323', monospace" font-size="12" fill="#fff" letter-spacing="1">OG · #42</text>
+
+            <!-- Top-right rarity indicator -->
+            <rect x="322" y="8" width="90" height="20" fill="#39FF14"/>
+            <text x="367" y="22" text-anchor="middle" font-family="'VT323', monospace" font-size="12" fill="#000" letter-spacing="1">RARE [2.4%]</text>
+
+            <!-- CRT scan line effect -->
+            <rect width="420" height="420" fill="url(#scanlines)" opacity="0.12"/>
+            <defs>
+              <pattern id="scanlines" width="1" height="4" patternUnits="userSpaceOnUse">
+                <rect width="1" height="2" fill="transparent"/>
+                <rect y="2" width="1" height="2" fill="#000"/>
+              </pattern>
+            </defs>
+          </svg>
+        </div>
+
+        <!-- Carousel: low-poly triangle arrows + 32x32 thumbnails -->
+        <div class="carousel-row">
+          <!-- Left arrow: low-poly isometric triangle SVG -->
+          <svg class="carousel-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <!-- Low-poly triangle: hard geometric, no curves -->
+            <polygon points="18,4 18,20 4,12" fill="#C0C0C0" stroke="#000" stroke-width="1"/>
+            <polygon points="18,4 4,12 11,12 11,4" fill="#ffffff" stroke="none" opacity="0.4"/>
+            <polygon points="18,20 4,12 11,12 11,20" fill="#404040" stroke="none" opacity="0.4"/>
+          </svg>
+
+          <!-- Thumbnails: exactly 32x32, 1px wireframe border -->
+          <div class="thumbnail-strip">
+            <div class="thumb active">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#0A304E"/><rect x="8" y="6" width="16" height="20" fill="#C0C0C0" stroke="#000" stroke-width="0.5"/><circle cx="16" cy="11" r="4" fill="#39FF14"/></svg>
+            </div>
+            <div class="thumb">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#0A304E"/><rect x="8" y="6" width="16" height="20" fill="#808080" stroke="#000" stroke-width="0.5"/><circle cx="16" cy="11" r="4" fill="#1338BE"/></svg>
+            </div>
+            <div class="thumb">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#0A304E"/><rect x="8" y="6" width="16" height="20" fill="#D0D0D0" stroke="#000" stroke-width="0.5"/><circle cx="16" cy="11" r="4" fill="#39FF14"/></svg>
+            </div>
+            <div class="thumb">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#001428"/><rect x="8" y="6" width="16" height="20" fill="#C0C0C0" stroke="#000" stroke-width="0.5"/><circle cx="16" cy="11" r="4" fill="#FF0000"/></svg>
+            </div>
+            <div class="thumb">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#0A304E"/><rect x="6" y="4" width="20" height="24" fill="#1338BE" stroke="#000" stroke-width="0.5"/><circle cx="16" cy="12" r="5" fill="#39FF14" opacity="0.8"/></svg>
+            </div>
+            <div class="thumb">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#001428"/><polygon points="16,4 6,28 26,28" fill="#C0C0C0" stroke="#000" stroke-width="0.5"/></svg>
+            </div>
+            <div class="thumb">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#0A304E"/><rect x="8" y="6" width="16" height="20" fill="#9090FF" stroke="#000" stroke-width="0.5"/><rect x="11" y="9" width="10" height="6" fill="#000"/></svg>
+            </div>
+            <div class="thumb">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#001428"/><rect x="7" y="5" width="18" height="22" fill="#C8C8C8" stroke="#000" stroke-width="0.5"/><circle cx="16" cy="11" r="4" fill="#FFB000"/></svg>
+            </div>
+            <div class="thumb">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#0A304E"/><rect x="8" y="6" width="16" height="20" fill="#C0C0C0" stroke="#000" stroke-width="0.5"/><circle cx="16" cy="11" r="4" fill="#39FF14"/><rect x="10" y="17" width="12" height="4" fill="#1338BE"/></svg>
+            </div>
+            <div class="thumb">
+              <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="#001428"/><rect x="8" y="8" width="16" height="16" fill="#1338BE" stroke="#39FF14" stroke-width="1"/></svg>
+            </div>
+          </div>
+
+          <!-- Right arrow -->
+          <svg class="carousel-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="6,4 6,20 20,12" fill="#C0C0C0" stroke="#000" stroke-width="1"/>
+            <polygon points="6,4 20,12 13,12 13,4" fill="#ffffff" stroke="none" opacity="0.4"/>
+            <polygon points="6,20 20,12 13,12 13,20" fill="#404040" stroke="none" opacity="0.4"/>
+          </svg>
+        </div>
+
+        <!-- Image count -->
+        <div style="font-family:'VT323',monospace; font-size:16px; color:#C0C0C0; letter-spacing:0.04em;">
+          ITEM 1 OF 4 — R2-NODE #0042
+        </div>
+
+      </div>
+
+      <!-- Right: metadata -->
+      <div class="meta-col">
+
+        <!-- Asset title -->
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="font-family:'VT323',monospace; font-size:28px; color:#000; letter-spacing:0.04em;">R2-NODE #0042</div>
+          <div class="agent-tag">ASSIGNED TO R2-ALPHA-01</div>
+        </div>
+
+        <!-- Core data -->
+        <div class="meta-section">
+          <div class="meta-title">// ASSET DATA //</div>
+          <div class="meta-row"><span class="key">CONTRACT:</span><span class="val">0x8f3a...c5e1</span></div>
+          <div class="meta-row"><span class="key">TOKEN ID:</span><span class="val">#0042</span></div>
+          <div class="meta-row"><span class="key">STANDARD:</span><span class="val">ERC-721</span></div>
+          <div class="meta-row"><span class="key">NETWORK:</span><span class="val">BASE MAINNET</span></div>
+          <div class="meta-row"><span class="key">FLOOR PRICE:</span><span class="val price">Ξ 0.084</span></div>
+          <div class="meta-row"><span class="key">LAST SALE:</span><span class="val price">Ξ 0.076</span></div>
+          <div class="meta-row"><span class="key">RARITY RANK:</span><span class="val">#124 / 10,000</span></div>
+        </div>
+
+        <!-- Traits -->
+        <div class="meta-section">
+          <div class="meta-title">// TRAIT MATRIX //</div>
+          <div class="trait-grid">
+            <div class="trait-badge">
+              <div class="trait-type">BODY</div>
+              <div class="trait-val">CHROME</div>
+            </div>
+            <div class="trait-badge">
+              <div class="trait-type">DOME</div>
+              <div class="trait-val">STANDARD</div>
+            </div>
+            <div class="trait-badge">
+              <div class="trait-type">EYE</div>
+              <div class="trait-val">CRT GREEN</div>
+            </div>
+            <div class="trait-badge">
+              <div class="trait-type">PANEL</div>
+              <div class="trait-val">MECH BLUE</div>
+            </div>
+            <div class="trait-badge">
+              <div class="trait-type">RADAR</div>
+              <div class="trait-val">ACTIVE</div>
+            </div>
+            <div class="trait-badge">
+              <div class="trait-type">BASE</div>
+              <div class="trait-val">ISOMETRIC</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent assignment info -->
+        <div class="meta-section">
+          <div class="meta-title">// AGENT ASSIGNMENT //</div>
+          <div class="meta-row"><span class="key">AGENT:</span><span class="val">R2-ALPHA-01</span></div>
+          <div class="meta-row"><span class="key">STRATEGY:</span><span class="val">FLOOR SNIPER</span></div>
+          <div class="meta-row"><span class="key">STATUS:</span><span class="val" style="color:#39FF14;">ACTIVE</span></div>
+          <div class="meta-row"><span class="key">P&L:</span><span class="val" style="color:#000080;">+Ξ 0.012</span></div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="btn-row">
+          <button class="btn-primary">▶ ASSIGN TO AGENT</button>
+          <button class="btn-secondary">LIST FOR SALE</button>
+          <button class="btn-secondary">TRANSFER</button>
+        </div>
+
+        <!-- Price history mini chart placeholder -->
+        <div class="meta-section" style="padding:8px;">
+          <div class="meta-title" style="margin-bottom:6px;">// PRICE HISTORY (30D) //</div>
+          <svg width="100%" height="50" viewBox="0 0 400 50" preserveAspectRatio="none">
+            <rect width="400" height="50" fill="#001428"/>
+            <!-- Grid lines -->
+            <line x1="0" y1="25" x2="400" y2="25" stroke="#1338BE" stroke-width="0.5" stroke-dasharray="4,4"/>
+            <line x1="0" y1="12" x2="400" y2="12" stroke="#1338BE" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.5"/>
+            <line x1="0" y1="38" x2="400" y2="38" stroke="#1338BE" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.5"/>
+            <!-- Price line (hard pixel/step chart) -->
+            <polyline points="0,35 40,35 40,28 80,28 80,32 120,32 120,20 160,20 160,25 200,25 200,18 240,18 240,22 280,22 280,15 320,15 320,20 360,20 360,16 400,16"
+              fill="none" stroke="#39FF14" stroke-width="1.5"/>
+            <!-- Fill under -->
+            <polygon points="0,35 40,35 40,28 80,28 80,32 120,32 120,20 160,20 160,25 200,25 200,18 240,18 240,22 280,22 280,15 320,15 320,20 360,20 360,16 400,16 400,50 0,50"
+              fill="#39FF14" opacity="0.1"/>
+          </svg>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div style="height:22px; background:#C0C0C0; border-top:1px solid #808080; display:flex; align-items:center; padding:0 8px; gap:1px;">
+      <div style="flex:1; font-size:11px; border-right:1px solid #808080; border-top:1px solid #404040; border-left:1px solid #ffffff; padding:0 6px; height:100%; display:flex; align-items:center;">4 ITEMS IN COLLECTION</div>
+      <div style="width:200px; font-size:11px; border-right:1px solid #808080; border-top:1px solid #404040; border-left:1px solid #ffffff; padding:0 6px; height:100%; display:flex; align-items:center;">TOTAL VALUE: Ξ 0.32</div>
+      <div style="width:160px; font-size:11px; border-top:1px solid #404040; border-left:1px solid #ffffff; padding:0 6px; height:100%; display:flex; align-items:center;">BASE MAINNET</div>
+    </div>
+  </div>
+
+  <!-- Taskbar -->
+  <div class="taskbar">
+    <button class="start-btn">⊞ Start</button>
+    <div style="width:2px; height:20px; border-left:1px solid #808080; border-right:1px solid #ffffff;"></div>
+    <button class="taskbar-app">⬡ R2_MARKET_TERMINAL.EXE</button>
+    <div class="taskbar-clock">03:14:22</div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: STRATEGOS — EXECUTE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root {
+      --void:#000; --bg:#080814; --bevel-hi:#3a3a5a; --bevel-lo:#050510;
+      --amber:#FF6A00; --amber-dim:#994000; --blue:#0088FF;
+      --green:#00CC44; --red:#CC2200; --gold:#FFCC44; --data:#88AACC; --dim:rgba(136,170,204,0.3);
+      --crt-bg:#020a04; --crt-text:#33FF55;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:var(--void); width:100vw; height:100vh;
+      display:flex; align-items:center; justify-content:center; overflow:hidden;
+      font-family:'Share Tech Mono',monospace;
+      cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cline x1='10' y1='0' x2='10' y2='7' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='10' y1='13' x2='10' y2='20' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='0' y1='10' x2='7' y2='10' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='13' y1='10' x2='20' y2='10' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Ccircle cx='10' cy='10' r='2.5' stroke='%23FF6A00' stroke-width='1' fill='none'/%3E%3C/svg%3E") 10 10, crosshair;
+    }
+    .viewport {
+      width:800px; height:600px; overflow:hidden; position:relative; background:var(--bg);
+      border-top:3px solid var(--bevel-hi); border-left:3px solid var(--bevel-hi);
+      border-right:3px solid var(--bevel-lo); border-bottom:3px solid var(--bevel-lo);
+    }
+    .metal-noise {
+      position:absolute; inset:0; pointer-events:none; z-index:5;
+      background:repeating-linear-gradient(180deg,transparent 0,transparent 2px,rgba(255,255,255,0.007) 2px,rgba(255,255,255,0.007) 3px);
+    }
+
+    /* Chrome bars */
+    .chrome-top {
+      position:absolute; top:0; left:0; right:0; height:30px; z-index:30;
+      background:repeating-linear-gradient(180deg,#1e1e3a 0,#1e1e3a 1px,#161628 1px,#161628 2px);
+      border-bottom:2px solid var(--bevel-lo);
+      display:flex; align-items:center; padding:0 10px; gap:8px;
+    }
+    .c-dot { width:8px; height:8px; }
+    .c-dot.on { background:var(--amber); box-shadow:0 0 5px var(--amber); }
+    .c-dot.off { background:#1a1a28; border:1px solid #0a0a16; }
+    .c-lbl { font-size:9px; letter-spacing:0.22em; color:var(--dim); }
+    .c-r { margin-left:auto; font-size:8px; letter-spacing:0.12em; color:var(--dim); }
+    .chrome-bot {
+      position:absolute; bottom:0; left:0; right:0; height:26px; z-index:30;
+      background:repeating-linear-gradient(180deg,#161628 0,#161628 1px,#1e1e3a 1px,#1e1e3a 2px);
+      border-top:2px solid var(--bevel-lo);
+      display:flex; align-items:center; padding:0 10px; gap:20px;
+    }
+    .s-item { display:flex; align-items:center; gap:5px; font-size:8px; letter-spacing:0.16em; color:var(--dim); }
+    .s-led { width:5px; height:5px; }
+    .s-led.g { background:var(--green); box-shadow:0 0 4px var(--green); }
+    .s-led.a { background:var(--amber); box-shadow:0 0 4px var(--amber); }
+
+    /* ── MAIN LAYOUT ── */
+    .layout {
+      position:absolute; top:30px; bottom:26px; left:0; right:0;
+      display:grid; grid-template-columns:200px 1fr 160px; grid-template-rows:1fr;
+    }
+
+    .panel {
+      background:repeating-linear-gradient(180deg,#0c0c1e 0,#0c0c1e 1px,#0e0e22 1px,#0e0e22 2px);
+    }
+    .panel-inner { padding:10px; display:flex; flex-direction:column; gap:8px; }
+
+    /* ── LEFT: ORDER INFO ── */
+    .info-l { border-right:2px solid var(--bevel-lo); }
+    .sec-title {
+      font-size:7px; letter-spacing:0.35em; color:var(--amber-dim);
+      border-bottom:1px solid var(--bevel-lo); padding-bottom:4px; margin-bottom:4px;
+    }
+    .info-block {
+      padding:6px;
+      border-top:1px solid var(--bevel-lo); border-left:1px solid var(--bevel-lo);
+      border-right:1px solid var(--bevel-hi); border-bottom:1px solid var(--bevel-hi);
+      margin-bottom:4px;
+    }
+    .ib-lbl { font-size:6px; letter-spacing:0.3em; color:var(--dim); margin-bottom:3px; }
+    .ib-val { font-size:13px; color:var(--gold); font-family:'Orbitron',sans-serif; font-weight:700; }
+    .ib-val.a { color:var(--amber); } .ib-val.g { color:var(--green); }
+
+    /* Status lights — palette swap on class, NO CSS filter */
+    .status-lights { display:flex; flex-direction:column; gap:5px; margin-top:4px; }
+    .s-light-row { display:flex; align-items:center; gap:7px; }
+    .s-light { width:10px; height:10px; flex-shrink:0; }
+    .s-light.active { background:var(--green); box-shadow:0 0 6px var(--green); }
+    .s-light.warn { background:var(--amber); box-shadow:0 0 6px var(--amber); }
+    .s-light.idle { background:#1a1a28; border:1px solid #0a0a16; }
+    .s-light-lbl { font-size:8px; letter-spacing:0.18em; color:var(--dim); }
+    .s-light-val { margin-left:auto; font-size:8px; }
+    .s-light-val.g { color:var(--green); }
+    .s-light-val.a { color:var(--amber); }
+
+    /* Visual keyboard */
+    .keyboard { display:flex; flex-direction:column; gap:3px; margin-top:auto; }
+    .kb-row { display:flex; gap:3px; }
+    .kb-key {
+      flex:1; height:18px;
+      border-top:1px solid var(--bevel-hi); border-left:1px solid var(--bevel-hi);
+      border-right:1px solid var(--bevel-lo); border-bottom:1px solid var(--bevel-lo);
+      background:linear-gradient(180deg,#1a1a2c,#14141e);
+      display:flex; align-items:center; justify-content:center;
+      font-size:6px; color:rgba(136,170,204,0.4); letter-spacing:0.05em;
+    }
+    .kb-key.wide { flex:2; }
+    .kb-key.hl {
+      background:linear-gradient(180deg,#2a1800,#1a0e00);
+      border-top-color:var(--amber); border-left-color:var(--amber);
+      color:var(--amber);
+    }
+
+    /* ── CENTER: CRT MONITOR ── */
+    .crt-area {
+      display:flex; align-items:center; justify-content:center;
+      background:repeating-linear-gradient(180deg,#090910 0,#090910 1px,#0a0a12 1px,#0a0a12 2px);
+      position:relative; overflow:hidden;
+    }
+
+    /* CRT Bezel */
+    .crt-bezel {
+      position:relative; width:300px; height:240px;
+      background:#0a0a0a;
+      border-top:8px solid #2a2a3a; border-left:8px solid #2a2a3a;
+      border-right:8px solid #0e0e1a; border-bottom:8px solid #0e0e1a;
+      box-shadow:0 0 0 2px #000, 0 8px 20px rgba(0,0,0,0.8);
+    }
+    /* CRT screen interior */
+    .crt-screen {
+      position:absolute; inset:4px;
+      background:var(--crt-bg);
+      border-top:2px solid #050510; border-left:2px solid #050510;
+      border-right:2px solid #1a1a1a; border-bottom:2px solid #1a1a1a;
+      overflow:hidden; padding:10px;
+    }
+    /* Static scanlines on CRT — position:absolute inside screen */
+    .crt-scanlines {
+      position:absolute; inset:0; pointer-events:none; z-index:10;
+      background:repeating-linear-gradient(180deg,transparent 0,transparent 3px,rgba(0,0,0,0.3) 3px,rgba(0,0,0,0.3) 4px);
+    }
+    .crt-text {
+      position:relative; z-index:5;
+      font-family:'Share Tech Mono',monospace; font-size:9px;
+      color:var(--crt-text); line-height:1.7; letter-spacing:0.05em;
+    }
+    .crt-cursor {
+      display:inline-block; width:7px; height:11px;
+      background:var(--crt-text); vertical-align:bottom;
+    }
+    /* Power LED on bezel */
+    .crt-led {
+      position:absolute; bottom:4px; right:10px;
+      width:6px; height:6px; background:var(--green);
+      box-shadow:0 0 5px var(--green);
+    }
+    /* Brand text on bezel */
+    .crt-brand {
+      position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
+      font-size:6px; letter-spacing:0.2em; color:rgba(136,170,204,0.2);
+    }
+
+    /* FIRE button area below CRT */
+    .fire-area {
+      position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+    }
+    .fire-label { font-size:7px; letter-spacing:0.4em; color:var(--amber-dim); }
+    .fire-btn {
+      width:140px; height:44px;
+      background:linear-gradient(180deg,#440000,#2a0000);
+      border-top:3px solid #880000; border-left:3px solid #880000;
+      border-right:3px solid #110000; border-bottom:3px solid #110000;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      cursor:pointer; font-family:'Orbitron',sans-serif; font-weight:900;
+      font-size:13px; letter-spacing:0.15em; color:var(--red);
+      text-shadow:0 0 8px var(--red);
+      transition:background 0.08s, color 0.08s, border-top-color 0.08s, border-left-color 0.08s;
+    }
+    .fire-btn:hover {
+      background:linear-gradient(180deg,#660000,#440000);
+      color:#ff4444; border-top-color:#cc2200; border-left-color:#cc2200;
+    }
+    .fire-btn:active {
+      border-top-color:#110000; border-left-color:#110000;
+      border-right-color:#880000; border-bottom-color:#880000;
+    }
+
+    /* ── RIGHT: CONTROLS ── */
+    .ctrl-r { border-left:2px solid var(--bevel-lo); }
+    .ctrl-group { margin-bottom:8px; }
+    .cg-title { font-size:6px; letter-spacing:0.3em; color:var(--dim); margin-bottom:4px; border-bottom:1px solid var(--bevel-lo); padding-bottom:3px; }
+
+    /* Toggle switches — visual only */
+    .toggle-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+    .toggle {
+      width:28px; height:14px; position:relative;
+      border-top:1px solid var(--bevel-lo); border-left:1px solid var(--bevel-lo);
+      border-right:1px solid var(--bevel-hi); border-bottom:1px solid var(--bevel-hi);
+      background:#08080f;
+    }
+    .toggle-knob {
+      position:absolute; top:1px; width:12px; height:10px;
+      border-top:1px solid var(--bevel-hi); border-left:1px solid var(--bevel-hi);
+      border-right:1px solid var(--bevel-lo); border-bottom:1px solid var(--bevel-lo);
+    }
+    .toggle.on { background:rgba(0,204,68,0.1); }
+    .toggle.on .toggle-knob { right:1px; background:#003a1a; border-top-color:var(--green); border-left-color:var(--green); }
+    .toggle.off .toggle-knob { left:1px; background:#1a1a28; }
+    .tg-lbl { font-size:7px; letter-spacing:0.15em; color:var(--dim); }
+    .tg-val { margin-left:auto; font-size:7px; }
+    .tg-val.g { color:var(--green); } .tg-val.d { color:var(--dim); }
+
+    /* Numeric input display */
+    .num-display {
+      padding:5px 6px;
+      border-top:1px solid var(--bevel-lo); border-left:1px solid var(--bevel-lo);
+      border-right:1px solid var(--bevel-hi); border-bottom:1px solid var(--bevel-hi);
+      background:#08080f; margin-bottom:4px;
+    }
+    .nd-lbl { font-size:6px; letter-spacing:0.25em; color:var(--dim); margin-bottom:2px; }
+    .nd-val { font-size:11px; color:var(--gold); letter-spacing:0.05em; }
+    .nd-val.a { color:var(--amber); }
+  </style>
+</head>
+<body>
+<div class="viewport">
+  <div class="metal-noise"></div>
+
+  <div class="chrome-top">
+    <div class="c-dot on"></div><div class="c-dot off"></div><div class="c-dot off"></div>
+    <span class="c-lbl">EXECUTION TERMINAL // ORDER AUTHORIZATION</span>
+    <span class="c-r">AGENT: R2-ALPHA-01 // AWAITING AUTH</span>
+  </div>
+  <div class="chrome-bot">
+    <span class="s-item"><span class="s-led g"></span>WALLET FUNDED</span>
+    <span class="s-item"><span class="s-led g"></span>GAS OK</span>
+    <span class="s-item"><span class="s-led a"></span>AUTH PENDING</span>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: Order info + keyboard -->
+    <div class="panel info-l">
+      <div class="panel-inner">
+        <div class="sec-title">// TARGET ORDER</div>
+        <div class="info-block"><div class="ib-lbl">COLLECTION</div><div class="ib-val">MECHDROID</div></div>
+        <div class="info-block"><div class="ib-lbl">TOKEN ID</div><div class="ib-val a">#1024</div></div>
+        <div class="info-block"><div class="ib-lbl">BID PRICE</div><div class="ib-val g">Ξ 0.460</div></div>
+        <div class="info-block"><div class="ib-lbl">EST. GAS</div><div class="ib-val" style="font-size:11px;">Ξ 0.0004</div></div>
+        <div class="info-block"><div class="ib-lbl">CONFIDENCE</div><div class="ib-val a">91%</div></div>
+
+        <div class="sec-title" style="margin-top:4px;">// SYSTEM STATUS</div>
+        <div class="status-lights">
+          <div class="s-light-row"><div class="s-light active"></div><span class="s-light-lbl">AGENT</span><span class="s-light-val g">ONLINE</span></div>
+          <div class="s-light-row"><div class="s-light active"></div><span class="s-light-lbl">WALLET</span><span class="s-light-val g">FUNDED</span></div>
+          <div class="s-light-row"><div class="s-light active"></div><span class="s-light-lbl">GAS ORC.</span><span class="s-light-val g">12 GWEI</span></div>
+          <div class="s-light-row"><div class="s-light warn"></div><span class="s-light-lbl">AUTH</span><span class="s-light-val a">WAITING</span></div>
+          <div class="s-light-row"><div class="s-light idle"></div><span class="s-light-lbl">TX RELAY</span><span class="s-light-val g">READY</span></div>
+        </div>
+
+        <!-- Visual keyboard -->
+        <div class="keyboard">
+          <div class="kb-row">
+            <div class="kb-key">1</div><div class="kb-key">2</div><div class="kb-key">3</div>
+            <div class="kb-key">4</div><div class="kb-key">5</div><div class="kb-key">6</div>
+            <div class="kb-key">7</div><div class="kb-key">8</div><div class="kb-key">9</div><div class="kb-key">0</div>
+          </div>
+          <div class="kb-row">
+            <div class="kb-key">Q</div><div class="kb-key">W</div><div class="kb-key">E</div>
+            <div class="kb-key hl">R</div><div class="kb-key">T</div><div class="kb-key">Y</div>
+            <div class="kb-key">U</div><div class="kb-key">I</div><div class="kb-key">O</div><div class="kb-key">P</div>
+          </div>
+          <div class="kb-row">
+            <div class="kb-key">A</div><div class="kb-key">S</div><div class="kb-key">D</div>
+            <div class="kb-key">F</div><div class="kb-key">G</div><div class="kb-key">H</div>
+            <div class="kb-key">J</div><div class="kb-key">K</div><div class="kb-key">L</div>
+          </div>
+          <div class="kb-row">
+            <div class="kb-key">Z</div><div class="kb-key">X</div><div class="kb-key hl">C</div>
+            <div class="kb-key">V</div><div class="kb-key">B</div><div class="kb-key">N</div><div class="kb-key">M</div>
+          </div>
+          <div class="kb-row"><div class="kb-key wide">SPACE</div><div class="kb-key hl">ENTER</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: CRT monitor -->
+    <div class="crt-area">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;z-index:10;">
+        <div style="font-size:7px;letter-spacing:0.4em;color:var(--amber-dim);">// AUTHORIZATION TERMINAL</div>
+        <div class="crt-bezel">
+          <div class="crt-screen">
+            <div class="crt-scanlines"></div>
+            <div class="crt-text">
+              R2-MARKETS v1.0.4<br>
+              EXEC TERMINAL READY<br>
+              &gt; LOADING ORDER...<br>
+              &gt; TARGET: #1024<br>
+              &gt; PRICE: 0.460 ETH<br>
+              &gt; GAS: 12 GWEI<br>
+              &gt; WALLET: OK<br>
+              &gt; MEMPOOL: CLEAR<br>
+              &gt;<br>
+              &gt; ENTER AUTH CODE:<br>
+              R2-ALPHA-01::EXEC<br>
+              ::0xCC4F9A<span class="crt-cursor"></span>
+            </div>
+          </div>
+          <div class="crt-led"></div>
+          <div class="crt-brand">STRATEGOS MK.II</div>
+        </div>
+
+        <div class="fire-area">
+          <div class="fire-label">// EXECUTE ORDER</div>
+          <button class="fire-btn">⬛ FIRE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Controls panel -->
+    <div class="panel ctrl-r">
+      <div class="panel-inner">
+        <div class="ctrl-group">
+          <div class="cg-title">// EXECUTION PARAMS</div>
+          <div class="num-display"><div class="nd-lbl">MAX SLIPPAGE</div><div class="nd-val a">2.0%</div></div>
+          <div class="num-display"><div class="nd-lbl">GAS LIMIT</div><div class="nd-val">200,000</div></div>
+          <div class="num-display"><div class="nd-lbl">PRIORITY FEE</div><div class="nd-val a">2 GWEI</div></div>
+          <div class="num-display"><div class="nd-lbl">DEADLINE</div><div class="nd-val">20 BLOCKS</div></div>
+        </div>
+        <div class="ctrl-group">
+          <div class="cg-title">// OVERRIDE FLAGS</div>
+          <div class="toggle-row">
+            <div class="toggle on"><div class="toggle-knob"></div></div>
+            <span class="tg-lbl">AUTO-RETRY</span><span class="tg-val g">ON</span>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle on"><div class="toggle-knob"></div></div>
+            <span class="tg-lbl">MEM PROTECT</span><span class="tg-val g">ON</span>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle off"><div class="toggle-knob"></div></div>
+            <span class="tg-lbl">FLASH BRIBE</span><span class="tg-val d">OFF</span>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle on"><div class="toggle-knob"></div></div>
+            <span class="tg-lbl">GAS BOOST</span><span class="tg-val g">ON</span>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle off"><div class="toggle-knob"></div></div>
+            <span class="tg-lbl">MULTI-TX</span><span class="tg-val d">OFF</span>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <div class="cg-title">// WALLET STATE</div>
+          <div class="num-display"><div class="nd-lbl">BALANCE</div><div class="nd-val g">Ξ 2.340</div></div>
+          <div class="num-display"><div class="nd-lbl">AFTER TX</div><div class="nd-val">Ξ 1.880</div></div>
+          <div class="num-display"><div class="nd-lbl">NONCE</div><div class="nd-val" style="font-size:9px;color:var(--dim);">0x4F2A</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: DATABANK</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root { --bg:#000; --pink:#FF007F; --green:#CCFF00; --cyan:#00FFFF; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); width:100vw; height:100vh; overflow:hidden; position:relative; font-family:'Share Tech Mono',monospace; }
+
+    /* ── HUD TOP BAR ── */
+    .hud-stripe {
+      position:absolute; top:0; left:0; right:0; height:50px; z-index:50;
+      background:rgba(0,0,0,0.97); border-bottom:3px solid var(--green);
+      display:flex; align-items:center; padding:0 24px; gap:16px;
+    }
+    .hud-title { font-family:'Anton',sans-serif; font-size:18px; font-style:italic; letter-spacing:1px; color:var(--green); }
+    .hud-crumb { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em; color:rgba(0,255,255,0.4); }
+    .hud-right { margin-left:auto; font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:0.15em; }
+
+    /* ── LEFT PANEL: wireframe globe ── */
+    .left-panel {
+      position:absolute;
+      top:0; left:0; width:55%; height:100%;
+      background:#000;
+      /* diagonal clip: right edge slants inward */
+      clip-path: polygon(0 0, 100% 0, 70% 100%, 0 100%);
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+    }
+
+    /* Katakana noise on left */
+    .kata-left {
+      position:absolute; inset:0; pointer-events:none;
+      font-family:'Noto Sans JP',sans-serif; font-weight:900; font-size:80px;
+      color:rgba(0,255,255,0.025); line-height:1.1; letter-spacing:-3px;
+      padding:10px; overflow:hidden;
+    }
+
+    .globe-container {
+      position:relative; width:420px; height:420px;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+
+    /* Large label behind globe */
+    .globe-label-bg {
+      position:absolute; bottom:-30px; left:50%; transform:translateX(-50%);
+      font-family:'Anton',sans-serif; font-size:100px; font-style:italic;
+      color:transparent; -webkit-text-stroke:1px rgba(0,255,255,0.08);
+      white-space:nowrap; letter-spacing:-4px; pointer-events:none;
+    }
+
+    /* Corner accent left panel */
+    .corner-tl {
+      position:absolute; top:60px; left:20px;
+      font-size:9px; letter-spacing:0.2em; color:rgba(0,255,255,0.3); line-height:1.9;
+    }
+    .corner-bl {
+      position:absolute; bottom:20px; left:20px;
+      font-size:9px; letter-spacing:0.2em; color:rgba(0,255,255,0.25); line-height:1.9;
+    }
+
+    /* ── RIGHT PANEL: classified text ── */
+    .right-panel {
+      position:absolute;
+      top:0; right:0; width:52%; height:100%;
+      background:#000;
+      clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+      display:flex; flex-direction:column;
+      padding-left:18%; padding-right:40px;
+      padding-top:50px; padding-bottom:0;
+      overflow:hidden;
+    }
+
+    /* CLASSIFIED banner */
+    .classified-banner {
+      width:100%; padding:8px 0;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--pink) 0px, var(--pink) 12px,
+        #000 12px, #000 20px
+      );
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+    .classified-text {
+      font-family:'Anton',sans-serif; font-size:13px; font-style:italic;
+      letter-spacing:0.3em; color:#000; background:var(--pink);
+      padding:2px 16px;
+    }
+    .classified-banner.green-banner {
+      background: repeating-linear-gradient(
+        90deg,
+        var(--green) 0px, var(--green) 12px,
+        #000 12px, #000 20px
+      );
+    }
+    .classified-banner.green-banner .classified-text {
+      background:var(--green); color:#000;
+    }
+
+    /* scrolling text window */
+    .text-window {
+      flex:1; overflow:hidden; padding:24px 0; position:relative;
+    }
+
+    .archive-entry {
+      margin-bottom:28px;
+    }
+    .entry-id {
+      font-size:9px; letter-spacing:0.4em; color:var(--pink); margin-bottom:6px;
+    }
+    .entry-title {
+      font-family:'Anton',sans-serif; font-size:20px; font-style:italic;
+      letter-spacing:1px; color:var(--green); margin-bottom:8px;
+    }
+    .entry-body {
+      font-size:10px; letter-spacing:0.12em; line-height:1.9;
+      color:rgba(204,255,0,0.6);
+    }
+    .entry-body .redacted {
+      background:var(--green); color:var(--green);
+      letter-spacing:0; user-select:none;
+    }
+    .entry-divider {
+      width:100%; height:1px;
+      background:linear-gradient(90deg, var(--green), transparent);
+      margin-top:16px;
+    }
+
+    /* Ghost text overlay right side */
+    .ghost-text {
+      position:absolute; right:-20px; top:50%;
+      transform:translateY(-50%) rotate(90deg);
+      font-family:'Anton',sans-serif; font-size:120px; font-style:italic;
+      color:transparent; -webkit-text-stroke:1px rgba(204,255,0,0.04);
+      white-space:nowrap; pointer-events:none;
+    }
+
+    /* Bottom status */
+    .bottom-bar {
+      flex-shrink:0; padding:12px 0 20px;
+      display:flex; gap:24px;
+    }
+    .stat-chip {
+      font-size:8px; letter-spacing:0.3em; color:rgba(204,255,0,0.4);
+    }
+    .stat-chip span { color:var(--green); }
+
+    /* Diagonal divider line (visual separator between panels) */
+    .divider-line {
+      position:absolute; top:0; bottom:0;
+      left:calc(55% - 2px); width:4px;
+      background:linear-gradient(180deg, var(--pink), var(--cyan), var(--green));
+      box-shadow:0 0 20px rgba(255,0,127,0.4);
+      z-index:20; pointer-events:none;
+      transform: skewX(-10deg);
+    }
+
+    /* Corner right panel info */
+    .corner-tr {
+      position:absolute; top:60px; right:20px;
+      font-size:9px; letter-spacing:0.2em; color:rgba(204,255,0,0.3); line-height:1.9;
+      text-align:right; z-index:10;
+    }
+  </style>
+</head>
+<body>
+
+<div class="hud-stripe">
+  <span class="hud-title">DATABANK</span>
+  <span class="hud-crumb">HOME // MAP // ARCHIVE // INTELLIGENCE</span>
+  <div class="hud-right">AGENT: R2-ALPHA-01 &nbsp;|&nbsp; CLEARANCE LVL.4 &nbsp;|&nbsp; BLOCK #27491842</div>
+</div>
+
+<!-- LEFT PANEL: wireframe globe -->
+<div class="left-panel">
+  <div class="kata-left">
+    データ・ログ　ネットワーク　アクセス<br>
+    システム　マーケット　デジタル<br>
+    エージェント　プロトコル　データ<br>
+    ネットワーク　アクセス　システム<br>
+    マーケット　デジタル　エージェント<br>
+    プロトコル　データ・ログ　ネット
+  </div>
+
+  <div class="corner-tl">
+    ARCHIVE.DEPTH // 7<br>
+    INDEX // 0x44A9<br>
+    QUERY // ACTIVE
+  </div>
+
+  <div class="globe-container">
+    <!-- Wireframe globe SVG -->
+    <svg width="420" height="420" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- outer glow ring -->
+      <circle cx="210" cy="210" r="195" stroke="#00FFFF" stroke-width="1" opacity="0.08"/>
+      <circle cx="210" cy="210" r="190" stroke="#00FFFF" stroke-width="0.5" opacity="0.04"/>
+
+      <!-- Main sphere outline -->
+      <circle cx="210" cy="210" r="180" stroke="#00FFFF" stroke-width="1.5" opacity="0.6"/>
+
+      <!-- Latitude lines (horizontal ellipses) -->
+      <ellipse cx="210" cy="210" rx="180" ry="18" stroke="#00FFFF" stroke-width="0.8" opacity="0.35"/>
+      <ellipse cx="210" cy="210" rx="180" ry="55" stroke="#00FFFF" stroke-width="0.8" opacity="0.35"/>
+      <ellipse cx="210" cy="210" rx="180" ry="95" stroke="#00FFFF" stroke-width="0.8" opacity="0.35"/>
+      <ellipse cx="210" cy="210" rx="180" ry="135" stroke="#00FFFF" stroke-width="0.8" opacity="0.35"/>
+      <ellipse cx="210" cy="210" rx="180" ry="160" stroke="#00FFFF" stroke-width="0.8" opacity="0.25"/>
+      <!-- poles -->
+      <ellipse cx="210" cy="210" rx="180" ry="5" stroke="#00FFFF" stroke-width="0.5" opacity="0.2"/>
+
+      <!-- Longitude lines (vertical ellipses) -->
+      <ellipse cx="210" cy="210" rx="18" ry="180" stroke="#00FFFF" stroke-width="0.8" opacity="0.35"/>
+      <ellipse cx="210" cy="210" rx="55" ry="180" stroke="#00FFFF" stroke-width="0.8" opacity="0.35"/>
+      <ellipse cx="210" cy="210" rx="95" ry="180" stroke="#00FFFF" stroke-width="0.8" opacity="0.35"/>
+      <ellipse cx="210" cy="210" rx="135" ry="180" stroke="#00FFFF" stroke-width="0.8" opacity="0.35"/>
+      <ellipse cx="210" cy="210" rx="162" ry="180" stroke="#00FFFF" stroke-width="0.8" opacity="0.25"/>
+
+      <!-- Diagonal longitude-like ellipses -->
+      <ellipse cx="210" cy="210" rx="55" ry="180" stroke="#FF007F" stroke-width="0.5" opacity="0.15" transform="rotate(45 210 210)"/>
+      <ellipse cx="210" cy="210" rx="95" ry="180" stroke="#FF007F" stroke-width="0.5" opacity="0.12" transform="rotate(30 210 210)"/>
+
+      <!-- Data marker dots (nodes) -->
+      <circle cx="210" cy="30" r="4" fill="#CCFF00" opacity="0.9"/>
+      <circle cx="210" cy="390" r="4" fill="#CCFF00" opacity="0.9"/>
+      <circle cx="30" cy="210" r="3" fill="#00FFFF" opacity="0.7"/>
+      <circle cx="390" cy="210" r="3" fill="#00FFFF" opacity="0.7"/>
+      <!-- Equatorial nodes -->
+      <circle cx="350" cy="150" r="3" fill="#FF007F" opacity="0.8"/>
+      <circle cx="70" cy="270" r="3" fill="#FF007F" opacity="0.8"/>
+      <circle cx="310" cy="330" r="3" fill="#CCFF00" opacity="0.7"/>
+      <circle cx="140" cy="100" r="2" fill="#00FFFF" opacity="0.6"/>
+
+      <!-- Node connector lines -->
+      <line x1="210" y1="30" x2="350" y2="150" stroke="#CCFF00" stroke-width="0.7" opacity="0.3"/>
+      <line x1="350" y1="150" x2="310" y2="330" stroke="#CCFF00" stroke-width="0.7" opacity="0.3"/>
+      <line x1="310" y1="330" x2="70" y2="270" stroke="#CCFF00" stroke-width="0.7" opacity="0.3"/>
+
+      <!-- Center reticle -->
+      <circle cx="210" cy="210" r="12" stroke="#FF007F" stroke-width="1.5" opacity="0.7"/>
+      <circle cx="210" cy="210" r="4" fill="#FF007F" opacity="0.9"/>
+      <line x1="198" y1="210" x2="182" y2="210" stroke="#FF007F" stroke-width="1" opacity="0.7"/>
+      <line x1="222" y1="210" x2="238" y2="210" stroke="#FF007F" stroke-width="1" opacity="0.7"/>
+      <line x1="210" y1="198" x2="210" y2="182" stroke="#FF007F" stroke-width="1" opacity="0.7"/>
+      <line x1="210" y1="222" x2="210" y2="238" stroke="#FF007F" stroke-width="1" opacity="0.7"/>
+
+      <!-- Scan arc indicator -->
+      <path d="M 120,130 A 110,110 0 0,1 340,200" stroke="#CCFF00" stroke-width="1.5" fill="none" opacity="0.5"/>
+      <circle cx="340" cy="200" r="5" fill="none" stroke="#CCFF00" stroke-width="1.5" opacity="0.7"/>
+    </svg>
+
+    <div class="globe-label-bg">GLOBE</div>
+  </div>
+
+  <div class="corner-bl">
+    LAT // 35.6762°N<br>
+    LON // 139.6503°E<br>
+    ALT // 0x0F22
+  </div>
+</div>
+
+<!-- RIGHT PANEL: classified archive text -->
+<div class="right-panel">
+
+  <div class="classified-banner" style="margin-top:12px;">
+    <span class="classified-text">// CLASSIFIED_INFO //</span>
+  </div>
+
+  <div class="text-window">
+    <div class="ghost-text">ARCHIVE</div>
+
+    <div class="archive-entry">
+      <div class="entry-id">ENTRY.ID // ARC-0044 // TIMESTAMP: 2047.03.12</div>
+      <div class="entry-title">MECHDROID GENESIS PROTOCOL</div>
+      <div class="entry-body">
+        Initial deployment of autonomous bidding units across BASE network confirmed.
+        Agent cluster R2-ALPHA series achieved <span class="redacted">REDACTED</span> completion
+        rate during Q1 sweep. Wallet exposure limited to protocol-grade EOA.
+        All transactions routed through <span class="redacted">XXXXXXXXXXX</span> relay nodes.
+        Snipe latency reduced to 147ms median. Slippage tolerance locked at 2.0%.
+      </div>
+      <div class="entry-divider"></div>
+    </div>
+
+    <div class="archive-entry">
+      <div class="entry-id">ENTRY.ID // ARC-0089 // TIMESTAMP: 2047.04.01</div>
+      <div class="entry-title">COLLECTION INTELLIGENCE SWEEP</div>
+      <div class="entry-body">
+        Floor velocity tracked across 847 active collections. MECHDROID series flagged
+        as primary acquisition target. Rarity distribution: <span class="redacted">CLASSIFIED</span>.
+        Trait correlation engine identified 14 undervalued token IDs. Confidence
+        threshold set to 87% minimum. Override protocol engaged for tokens
+        #1024, #1031, #1067, <span class="redacted">REDACTED</span>.
+      </div>
+      <div class="entry-divider"></div>
+    </div>
+
+    <div class="archive-entry">
+      <div class="entry-id">ENTRY.ID // ARC-0137 // TIMESTAMP: 2047.04.19</div>
+      <div class="entry-title">NETWORK NODE TOPOLOGY REPORT</div>
+      <div class="entry-body">
+        Relay infrastructure <span class="redacted">XXXXXXXXXXXXXXXXXXXXX</span> nominal.
+        Gas oracle synchronization: ACTIVE. Mempool visibility: 97.3%.
+        Competitor agent signatures detected: <span class="redacted">REDACTED</span> vectors.
+        Countermeasure deployed. Acquisition window estimated at 4–9 second blocks.
+        All parameters within operational tolerance. SYNC confirmed.
+      </div>
+      <div class="entry-divider"></div>
+    </div>
+
+    <div class="archive-entry">
+      <div class="entry-id">ENTRY.ID // ARC-0201 // TIMESTAMP: 2047.05.03</div>
+      <div class="entry-title">AUTONOMOUS OVERRIDE EVENT LOG</div>
+      <div class="entry-body">
+        Override events logged: 34. Authorization failures: 0. Wallet
+        balance maintained above minimum threshold throughout sweep period.
+        Agent R2-ALPHA-01 registered <span class="redacted">REDACTED</span> successful
+        acquisitions at average of Ξ 0.41 below estimated fair value.
+        P&amp;L delta: <span style="color:var(--green)">+Ξ 12.340</span>.
+      </div>
+    </div>
+  </div>
+
+  <div class="classified-banner green-banner" style="margin-bottom:12px;">
+    <span class="classified-text">// CLASSIFIED_INFO //</span>
+  </div>
+
+  <div class="bottom-bar">
+    <span class="stat-chip">ENTRIES: <span>201</span></span>
+    <span class="stat-chip">CLEARANCE: <span>LVL.4</span></span>
+    <span class="stat-chip">ENCRYPTED: <span>AES-256</span></span>
+    <span class="stat-chip">LAST SYNC: <span>14s AGO</span></span>
+  </div>
+</div>
+
+<!-- Diagonal divider -->
+<div class="divider-line"></div>
+
+<!-- Top-right info -->
+<div class="corner-tr">
+  ACCESS.LOG // OPEN<br>
+  REDACT // ON<br>
+  EXPORT // LOCKED
+</div>
+
+<!-- Bottom BG cross lines -->
+<svg style="position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <path d="M0,0 L60,0 M0,0 L0,60" stroke="#00FFFF" stroke-width="2" opacity="0.3"/>
+  <path d="M1440,900 L1380,900 M1440,900 L1440,840" stroke="#CCFF00" stroke-width="2" opacity="0.25"/>
+</svg>
+
+</body>
+</html>

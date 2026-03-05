@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: PROTOCOL DIRECTIVES</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root {
+      --bg:  #1A0B2E;
+      --pk:  #FF007F;
+      --gr:  #CCFF00;
+      --cy:  #00FFFF;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+      font-family: 'Anton', Impact, sans-serif;
+      position: relative;
+    }
+
+    /* ── Katakana noise ── */
+    .kata {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      font-family: 'Noto Sans JP', sans-serif; font-weight: 900; font-size: 90px;
+      color: rgba(255,255,255,0.04); line-height: 1.05; letter-spacing: -3px;
+      padding: 10px 20px; overflow: hidden; word-break: break-all;
+    }
+
+    /* ── Diagonal accent SVG ── */
+    .accent-svg { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+    /* ── HUD corner brackets ── */
+    .c-tl { position: absolute; top: 14px; left: 14px; width: 30px; height: 30px; z-index: 31; border-top: 3px solid var(--cy); border-left: 3px solid var(--cy); }
+    .c-tr { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; z-index: 31; border-top: 3px solid var(--pk); border-right: 3px solid var(--pk); }
+    .c-bl { position: absolute; bottom: 14px; left: 14px; width: 30px; height: 30px; z-index: 31; border-bottom: 3px solid var(--gr); border-left: 3px solid var(--gr); }
+    .c-br { position: absolute; bottom: 14px; right: 14px; width: 30px; height: 30px; z-index: 31; border-bottom: 3px solid var(--cy); border-right: 3px solid var(--cy); }
+
+    /* ── HUD readouts ── */
+    .hud-tl {
+      position: absolute; top: 22px; left: 54px; z-index: 30;
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      color: rgba(0,255,255,0.4); letter-spacing: 0.25em; line-height: 1.9;
+    }
+    .hud-tr {
+      position: absolute; top: 22px; right: 54px; z-index: 30;
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      color: rgba(255,0,127,0.45); letter-spacing: 0.15em; text-align: right; line-height: 1.9;
+    }
+    .hud-bl {
+      position: absolute; bottom: 22px; left: 54px; z-index: 30;
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      color: rgba(204,255,0,0.35); letter-spacing: 0.15em; line-height: 1.8;
+    }
+    .hud-br {
+      position: absolute; bottom: 22px; right: 54px; z-index: 30;
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      color: rgba(255,255,255,0.18); letter-spacing: 0.15em; text-align: right;
+    }
+
+    /* ═══════════════ MAIN LAYOUT ═══════════════ */
+    .layout {
+      position: absolute; inset: 0; z-index: 20;
+      display: flex;
+    }
+
+    /* ────────── LEFT WARNING PANEL ────────── */
+    .l-panel {
+      width: 196px; flex-shrink: 0;
+      background: #000000;
+      border-right: 2px solid rgba(0,255,255,0.12);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      padding-top: 52px;
+    }
+
+    /* Panel header */
+    .l-head {
+      padding: 0 14px 10px;
+      border-bottom: 1px solid rgba(0,255,255,0.1);
+      margin-bottom: 6px;
+    }
+    .l-head-sup {
+      font-family: 'Share Tech Mono', monospace; font-size: 7.5px; letter-spacing: 0.45em;
+      color: rgba(0,255,255,0.28); text-transform: uppercase; margin-bottom: 3px;
+    }
+    .l-head-title {
+      font-family: 'Anton', sans-serif; font-size: 14px; font-style: italic; letter-spacing: 1.5px;
+      color: rgba(0,255,255,0.6);
+    }
+
+    /* Repeating warning text rows */
+    .banner-rows { flex: 1; overflow: hidden; padding: 4px 0; }
+
+    .br {
+      font-family: 'Share Tech Mono', monospace; font-size: 8.5px; letter-spacing: 0.22em;
+      padding: 3.5px 14px;
+      white-space: nowrap;
+      border-bottom: 1px solid transparent;
+    }
+    .br.dim  { color: rgba(0,255,255,0.12); border-bottom-color: rgba(0,255,255,0.02); }
+    .br.mid  { color: rgba(0,255,255,0.32); border-bottom-color: rgba(0,255,255,0.06); }
+    .br.lit  { color: rgba(0,255,255,0.75); text-shadow: 0 0 8px rgba(0,255,255,0.3); border-bottom-color: rgba(0,255,255,0.14); }
+
+    /* Panel separator */
+    .l-sep { height: 1px; background: rgba(0,255,255,0.07); margin: 6px 14px; }
+
+    /* Objective progress tracker */
+    .l-prog {
+      padding: 8px 14px 52px;
+      border-top: 1px solid rgba(0,255,255,0.06);
+    }
+    .l-prog-lbl {
+      font-family: 'Share Tech Mono', monospace; font-size: 7.5px; letter-spacing: 0.4em;
+      color: rgba(255,255,255,0.18); margin-bottom: 8px;
+    }
+    .l-step { display: flex; align-items: center; gap: 10px; padding: 3.5px 0; }
+    .l-dot {
+      width: 7px; height: 7px; flex-shrink: 0;
+      border: 1.5px solid rgba(80,80,80,0.35);
+    }
+    .l-dot.done { background: var(--gr); border-color: var(--gr); box-shadow: 0 0 5px rgba(204,255,0,0.4); }
+    .l-dot.pend { border-color: var(--cy); box-shadow: 0 0 5px rgba(0,255,255,0.3); }
+    .l-dot.lock { border-color: rgba(70,70,70,0.3); }
+    .l-lbl {
+      font-family: 'Share Tech Mono', monospace; font-size: 7.5px; letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.18);
+    }
+    .l-lbl.done { color: rgba(204,255,0,0.6); }
+    .l-lbl.pend { color: rgba(0,255,255,0.5); }
+    .l-lbl.lock { color: rgba(80,80,80,0.35); }
+
+    /* ────────── MAIN PANEL ────────── */
+    .m-panel {
+      flex: 1;
+      padding: 50px 44px 50px 34px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Section header bar */
+    .s-head {
+      display: flex; align-items: center; gap: 16px;
+      padding-bottom: 11px;
+      border-bottom: 2px solid rgba(255,0,127,0.2);
+      margin-bottom: 13px;
+      flex-shrink: 0;
+    }
+    .s-title {
+      font-family: 'Anton', sans-serif; font-size: 16px; font-style: italic; letter-spacing: 2px;
+      color: var(--pk);
+    }
+    .s-slash { color: rgba(255,0,127,0.3); font-family: 'Anton', sans-serif; font-size: 14px; }
+    .s-sub {
+      font-family: 'Share Tech Mono', monospace; font-size: 8.5px; letter-spacing: 0.28em;
+      color: rgba(255,255,255,0.22);
+    }
+    .s-right {
+      margin-left: auto;
+      font-family: 'Share Tech Mono', monospace; font-size: 8.5px; letter-spacing: 0.2em;
+      color: rgba(0,255,255,0.5);
+      text-align: right;
+    }
+
+    /* ─── Quest Card Stack ─── */
+    .quest-stack {
+      flex: 1; display: flex; flex-direction: column; gap: 9px; overflow: hidden;
+    }
+
+    /* Card base */
+    .qcard {
+      flex: 1; min-height: 0;
+      background: #000;
+      border: 2px solid;
+      position: relative;
+      display: flex;
+      overflow: hidden;
+      clip-path: polygon(
+        0 0,
+        calc(100% - 20px) 0,
+        100% 20px,
+        100% 100%,
+        20px 100%,
+        0 calc(100% - 20px)
+      );
+    }
+
+    /* State border colors */
+    .qcard.done  { border-color: var(--gr); }
+    .qcard.prog  { border-color: var(--gr); }
+    .qcard.avail { border-color: var(--cy); }
+    .qcard.lock  { border-color: rgba(65,65,65,0.35); background: #020202; }
+
+    /* Left accent stripe */
+    .qcard-bar { width: 4px; flex-shrink: 0; align-self: stretch; }
+    .qcard.done  .qcard-bar { background: var(--gr); box-shadow: 2px 0 12px rgba(204,255,0,0.5); }
+    .qcard.prog  .qcard-bar { background: var(--gr); box-shadow: 2px 0 12px rgba(204,255,0,0.5); }
+    .qcard.avail .qcard-bar { background: var(--cy); box-shadow: 2px 0 10px rgba(0,255,255,0.4); }
+    .qcard.lock  .qcard-bar { background: rgba(60,60,60,0.25); }
+
+    /* Large watermark number in card background */
+    .qcard-wm {
+      position: absolute;
+      right: 20px; top: 50%; transform: translateY(-50%);
+      font-family: 'Anton', sans-serif; font-size: 108px; line-height: 1;
+      font-style: italic;
+      color: transparent;
+      pointer-events: none; user-select: none; z-index: 0;
+    }
+    .qcard.done  .qcard-wm { -webkit-text-stroke: 1.5px rgba(204,255,0,0.065); }
+    .qcard.prog  .qcard-wm { -webkit-text-stroke: 1.5px rgba(204,255,0,0.065); }
+    .qcard.avail .qcard-wm { -webkit-text-stroke: 1.5px rgba(0,255,255,0.065); }
+    .qcard.lock  .qcard-wm { -webkit-text-stroke: 1.5px rgba(65,65,65,0.04); }
+
+    /* Card inner content */
+    .qcard-body {
+      flex: 1; padding: 13px 22px 13px 16px;
+      display: flex; flex-direction: column; justify-content: center;
+      gap: 5px; position: relative; z-index: 1; min-width: 0;
+    }
+
+    /* Card title */
+    .qcard-title {
+      font-family: 'Anton', sans-serif; font-size: 29px; line-height: 1;
+      font-style: italic; letter-spacing: -0.5px;
+    }
+    .qcard.done  .qcard-title { color: var(--gr); }
+    .qcard.prog  .qcard-title { color: #ffffff; }
+    .qcard.avail .qcard-title { color: #ffffff; }
+    .qcard.lock  .qcard-title { color: rgba(80,80,80,0.45); }
+
+    /* Card descriptor */
+    .qcard-desc {
+      font-family: 'Share Tech Mono', monospace; font-size: 8.5px;
+      letter-spacing: 0.22em; line-height: 1.75;
+      color: rgba(255,255,255,0.28);
+    }
+    .qcard.lock .qcard-desc { color: rgba(80,80,80,0.25); }
+
+    /* Card action row */
+    .qcard-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 2px; }
+
+    /* ─── Shared button base ─── */
+    button {
+      font-family: 'Share Tech Mono', monospace;
+      cursor: pointer; outline: none; border: none; background: transparent;
+    }
+
+    /* Chamfered action buttons */
+    .btn {
+      font-size: 9px; letter-spacing: 0.32em;
+      padding: 6px 16px;
+      clip-path: polygon(
+        0 0, calc(100% - 6px) 0, 100% 6px,
+        100% 100%, 6px 100%, 0 calc(100% - 6px)
+      );
+      transition: background 0.08s, color 0.08s;
+    }
+    .btn-gr { border: 1.5px solid var(--gr); color: var(--gr); }
+    .btn-gr:hover { background: var(--gr); color: #000; }
+    .btn-cy { border: 1.5px solid var(--cy); color: var(--cy); }
+    .btn-cy:hover { background: var(--cy); color: #000; }
+    .btn-pk { border: 1.5px solid var(--pk); color: var(--pk); }
+    .btn-pk:hover { background: var(--pk); color: #000; }
+
+    /* Complete badge */
+    .badge-done {
+      font-family: 'Share Tech Mono', monospace; font-size: 8.5px; letter-spacing: 0.3em;
+      padding: 3px 10px;
+      background: rgba(204,255,0,0.08);
+      border: 1px solid rgba(204,255,0,0.38);
+      color: var(--gr);
+    }
+
+    /* Progress squares (card 02) */
+    .sq-row { display: flex; align-items: center; gap: 8px; }
+    .sq { width: 22px; height: 22px; border: 2px solid rgba(255,0,127,0.35); }
+    .sq.on {
+      background: var(--pk); border-color: var(--pk);
+      box-shadow: 0 0 8px rgba(255,0,127,0.5), inset 0 0 4px rgba(255,255,255,0.15);
+    }
+    .sq-count {
+      font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 0.25em;
+      color: rgba(255,0,127,0.7); margin-left: 6px;
+    }
+
+    /* Referral link block (card 02) */
+    .ref-block {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(204,255,0,0.03);
+      border-left: 3px solid rgba(204,255,0,0.22);
+      padding: 5px 12px; margin-top: 2px;
+    }
+    .ref-lbl {
+      font-family: 'Share Tech Mono', monospace; font-size: 7.5px; letter-spacing: 0.4em;
+      color: rgba(204,255,0,0.38); white-space: nowrap;
+    }
+    .ref-url {
+      font-family: 'Share Tech Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em;
+      color: rgba(204,255,0,0.72);
+    }
+
+    /* Discord status chip (card 03) */
+    .disc-chip {
+      font-family: 'Share Tech Mono', monospace; font-size: 8.5px; letter-spacing: 0.2em;
+      color: rgba(0,255,255,0.4);
+      padding: 3px 9px; border: 1px solid rgba(0,255,255,0.2);
+    }
+
+    /* Locked init button (card 04) */
+    .init-btn {
+      width: 100%;
+      margin-top: 2px;
+      padding: 10px 0;
+      border: 2px solid rgba(65,65,65,0.35);
+      font-family: 'Anton', sans-serif; font-size: 22px; font-style: italic; letter-spacing: 1.5px;
+      color: rgba(80,80,80,0.35);
+      cursor: not-allowed;
+      clip-path: polygon(
+        0 0, calc(100% - 14px) 0, 100% 14px,
+        100% 100%, 14px 100%, 0 calc(100% - 14px)
+      );
+      text-align: center;
+    }
+    .init-sub {
+      font-family: 'Share Tech Mono', monospace; font-size: 7.5px; letter-spacing: 0.3em;
+      color: rgba(65,65,65,0.3); margin-top: 3px;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- Katakana background noise -->
+<div class="kata">
+アクセス・グリッド　プロトコル　エージェント　システム　データ・ログ　ネットワーク<br>
+デジタル　マーケット　アクセス　システム　エージェント　プロトコル<br>
+ネットワーク　データ・ログ　マーケット　デジタル　アクセス<br>
+エージェント　プロトコル　システム　データ・ログ　ネットワーク　アクセス<br>
+グリッド　マーケット　デジタル　エージェント　プロトコル
+</div>
+
+<!-- Diagonal accent lines + structural geometry -->
+<svg class="accent-svg" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <!-- Primary diagonal slashes (top-left zone) -->
+  <line x1="-60" y1="430" x2="560" y2="-80" stroke="#FF007F" stroke-width="4" opacity="0.09"/>
+  <line x1="-60" y1="490" x2="620" y2="-80" stroke="#FF007F" stroke-width="1.5" opacity="0.055"/>
+  <!-- Bottom-right echoes -->
+  <line x1="1500" y1="460" x2="870" y2="980" stroke="#00FFFF" stroke-width="3" opacity="0.07"/>
+  <line x1="1500" y1="410" x2="830" y2="980" stroke="#00FFFF" stroke-width="1" opacity="0.04"/>
+  <!-- Horizontal scan lines -->
+  <line x1="0" y1="118" x2="1440" y2="118" stroke="#CCFF00" stroke-width="0.5" opacity="0.055"/>
+  <line x1="0" y1="782" x2="1440" y2="782" stroke="#FF007F" stroke-width="0.5" opacity="0.045"/>
+  <!-- Crosshair accent (bottom-right corner area) -->
+  <line x1="1372" y1="832" x2="1416" y2="832" stroke="#CCFF00" stroke-width="1" opacity="0.4"/>
+  <line x1="1394" y1="810" x2="1394" y2="854" stroke="#CCFF00" stroke-width="1" opacity="0.4"/>
+  <circle cx="1394" cy="832" r="3" fill="none" stroke="#CCFF00" stroke-width="1" opacity="0.35"/>
+  <!-- Left panel delimiter top decoration -->
+  <line x1="196" y1="0" x2="196" y2="900" stroke="#00FFFF" stroke-width="0" opacity="0"/>
+  <!-- Mid-screen subtle horizontal rule above cards -->
+  <line x1="220" y1="112" x2="1420" y2="112" stroke="#FF007F" stroke-width="0.5" opacity="0.06"/>
+</svg>
+
+<!-- HUD corner brackets -->
+<div class="c-tl"></div>
+<div class="c-tr"></div>
+<div class="c-bl"></div>
+<div class="c-br"></div>
+
+<!-- HUD text overlays -->
+<div class="hud-tl">
+  SYS.VER // 1.0.4<br>
+  CONN // BASE_NET<br>
+  PHASE_1 // ACTIVE
+</div>
+<div class="hud-tr">
+  R2-OS KERNEL<br>
+  ERC-8004 NODE<br>
+  BLOCK #27491842
+</div>
+<div class="hud-bl">
+  AGENT // R2-ALPHA-01<br>
+  PROTOCOLS // 1.5/4
+</div>
+<div class="hud-br">
+  © 2026 R2-SYSTEMS CORP.<br>
+  QUEUE SLOT #2,094 / 5,000
+</div>
+
+<!-- ════════════ MAIN LAYOUT ════════════ -->
+<div class="layout">
+
+  <!-- ── LEFT WARNING PANEL ── -->
+  <div class="l-panel">
+
+    <div class="l-head">
+      <div class="l-head-sup">STATUS</div>
+      <div class="l-head-title">DIRECTIVES</div>
+    </div>
+
+    <div class="banner-rows">
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br mid">// DIRECTIVES_PENDING //</div>
+      <div class="br lit">// DIRECTIVES_PENDING //</div>
+      <div class="br lit">// DIRECTIVES_PENDING //</div>
+      <div class="br mid">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br mid">// DIRECTIVES_PENDING //</div>
+      <div class="br lit">// DIRECTIVES_PENDING //</div>
+      <div class="br mid">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br mid">// DIRECTIVES_PENDING //</div>
+      <div class="br lit">// DIRECTIVES_PENDING //</div>
+      <div class="br lit">// DIRECTIVES_PENDING //</div>
+      <div class="br mid">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+      <div class="br mid">// DIRECTIVES_PENDING //</div>
+      <div class="br dim">// DIRECTIVES_PENDING //</div>
+    </div>
+
+    <div class="l-sep"></div>
+
+    <!-- Objective tracker -->
+    <div class="l-prog">
+      <div class="l-prog-lbl">OBJECTIVE_STATUS</div>
+      <div class="l-step">
+        <div class="l-dot done"></div>
+        <div class="l-lbl done">COM_LINK</div>
+      </div>
+      <div class="l-step">
+        <div class="l-dot pend"></div>
+        <div class="l-lbl pend">RECRUITMENT</div>
+      </div>
+      <div class="l-step">
+        <div class="l-dot pend"></div>
+        <div class="l-lbl">BASE_CAMP</div>
+      </div>
+      <div class="l-step">
+        <div class="l-dot lock"></div>
+        <div class="l-lbl lock">INIT_AGENT</div>
+      </div>
+    </div>
+
+  </div><!-- /l-panel -->
+
+  <!-- ── MAIN PANEL ── -->
+  <div class="m-panel">
+
+    <!-- Section header -->
+    <div class="s-head">
+      <div class="s-title">PROTOCOL.DIRECTIVES</div>
+      <div class="s-slash">//</div>
+      <div class="s-sub">R2-MARKETS :: AGENT_CLAIM :: PHASE_1</div>
+      <div class="s-right">OBJECTIVES: 1.5 / 4 &nbsp;·&nbsp; SLOT #2,094</div>
+    </div>
+
+    <!-- ── Quest Cards ── -->
+    <div class="quest-stack">
+
+      <!-- ══ CARD 01: COM_LINK ESTABLISHED (COMPLETE) ══ -->
+      <div class="qcard done">
+        <div class="qcard-bar"></div>
+        <div class="qcard-wm">01</div>
+        <div class="qcard-body">
+          <div class="qcard-title">[01] COM_LINK ESTABLISHED</div>
+          <div class="qcard-desc">TARGET :: @R2MARKETS &nbsp;·&nbsp; PLATFORM :: X/TWITTER &nbsp;·&nbsp; SIGNAL :: AUTHENTICATED &nbsp;·&nbsp; HANDSHAKE :: COMPLETE</div>
+          <div class="qcard-row">
+            <span class="badge-done">✓ LINK ACTIVE</span>
+            <button class="btn btn-gr" style="opacity:0.45; cursor:default;">[ FOLLOW @R2MARKETS ]</button>
+            <span style="font-family:'Share Tech Mono',monospace; font-size:8px; letter-spacing:0.2em; color:rgba(204,255,0,0.32);">VERIFIED 03:12:44 UTC</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CARD 02: RECRUITMENT PROTOCOL (IN PROGRESS – 1/3) ══ -->
+      <div class="qcard prog">
+        <div class="qcard-bar"></div>
+        <div class="qcard-wm">02</div>
+        <div class="qcard-body">
+          <div class="qcard-title">[02] RECRUITMENT PROTOCOL</div>
+          <div class="qcard-desc">DISTRIBUTE AGENT LINK &nbsp;·&nbsp; TARGET :: 3 RECRUITS &nbsp;·&nbsp; REWARD :: ENHANCED SLOT PRIORITY + COMMISSION</div>
+          <div class="qcard-row">
+            <div class="sq-row">
+              <div class="sq on"></div>
+              <div class="sq"></div>
+              <div class="sq"></div>
+              <span class="sq-count">1 / 3 RECRUITS</span>
+            </div>
+          </div>
+          <div class="ref-block">
+            <span class="ref-lbl">RECRUIT.URL //</span>
+            <span class="ref-url">r2.markets/ref/0x4F7A9C2E8b1D</span>
+            <button class="btn btn-gr" style="margin-left:auto; padding:4px 12px; font-size:8.5px;">[ COPY_LINK ]</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CARD 03: BASE_CAMP INFILTRATION (AVAILABLE) ══ -->
+      <div class="qcard avail">
+        <div class="qcard-bar"></div>
+        <div class="qcard-wm">03</div>
+        <div class="qcard-body">
+          <div class="qcard-title">[03] BASE_CAMP INFILTRATION</div>
+          <div class="qcard-desc">JOIN R2-MARKETS DISCORD SERVER &nbsp;·&nbsp; VERIFY HOLDER STATUS &nbsp;·&nbsp; BIND DISCORD ID TO AGENT PROFILE</div>
+          <div class="qcard-row">
+            <button class="btn btn-pk">[ JOIN_DISCORD ]</button>
+            <button class="btn btn-cy">[ VERIFY_HOLDER_STATUS ]</button>
+            <span class="disc-chip">DISCORD: DISCONNECTED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CARD 04: INITIALIZE AGENT (LOCKED) ══ -->
+      <div class="qcard lock">
+        <div class="qcard-bar"></div>
+        <div class="qcard-wm">04</div>
+        <div class="qcard-body">
+          <div class="qcard-title">[04] INITIALIZE AGENT</div>
+          <div class="qcard-desc">DEPLOY ERC-8004 IDENTITY TOKEN &nbsp;·&nbsp; REGISTER TO BASE MAINNET &nbsp;·&nbsp; ALL PRIOR PROTOCOLS MUST BE COMPLETE</div>
+          <button class="init-btn">◈ &nbsp;INITIALIZE AGENT :: WAITING...</button>
+          <div class="init-sub">COMPLETE ALL PROTOCOLS TO UNLOCK AGENT INITIALIZATION</div>
+        </div>
+      </div>
+
+    </div><!-- /quest-stack -->
+
+  </div><!-- /m-panel -->
+
+</div><!-- /layout -->
+
+</body>
+</html>

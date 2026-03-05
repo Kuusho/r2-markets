@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: STRATEGOS — COMMAND</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root {
+      --void:#000; --bg:#080814; --panel:#0d0d1e; --chrome:#181828;
+      --bevel-hi:#3a3a5a; --bevel-lo:#050510;
+      --amber:#FF6A00; --amber-dim:#994000; --blue:#0088FF; --blue-dim:#004488;
+      --green:#00CC44; --red:#CC2200; --gold:#FFCC44; --data:#88AACC; --dim:rgba(136,170,204,0.3);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:var(--void); width:100vw; height:100vh;
+      display:flex; align-items:center; justify-content:center; overflow:hidden;
+      font-family:'Share Tech Mono',monospace;
+      cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cline x1='10' y1='0' x2='10' y2='7' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='10' y1='13' x2='10' y2='20' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='0' y1='10' x2='7' y2='10' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Cline x1='13' y1='10' x2='20' y2='10' stroke='%23FF6A00' stroke-width='1.5'/%3E%3Ccircle cx='10' cy='10' r='2.5' stroke='%23FF6A00' stroke-width='1' fill='none'/%3E%3C/svg%3E") 10 10, crosshair;
+    }
+    .viewport {
+      width:800px; height:600px; overflow:hidden; position:relative; background:var(--bg);
+      border-top:3px solid var(--bevel-hi); border-left:3px solid var(--bevel-hi);
+      border-right:3px solid var(--bevel-lo); border-bottom:3px solid var(--bevel-lo);
+    }
+    .metal-noise {
+      position:absolute; inset:0; pointer-events:none; z-index:5;
+      background:repeating-linear-gradient(180deg,transparent 0,transparent 2px,rgba(255,255,255,0.006) 2px,rgba(255,255,255,0.006) 3px);
+    }
+
+    /* Chrome top */
+    .chrome-top {
+      position:absolute; top:0; left:0; right:0; height:30px; z-index:30;
+      background:repeating-linear-gradient(180deg,#1e1e3a 0,#1e1e3a 1px,#161628 1px,#161628 2px);
+      border-bottom:2px solid var(--bevel-lo);
+      display:flex; align-items:center; padding:0 10px; gap:8px;
+    }
+    .c-dot { width:8px; height:8px; }
+    .c-dot.on { background:var(--amber); box-shadow:0 0 5px var(--amber); }
+    .c-dot.blue { background:var(--blue); box-shadow:0 0 5px var(--blue); }
+    .c-dot.off { background:#1a1a28; border:1px solid #0a0a16; }
+    .c-lbl { font-size:9px; letter-spacing:0.22em; color:var(--dim); }
+    .c-r { margin-left:auto; font-size:8px; letter-spacing:0.12em; color:var(--dim); }
+
+    /* Chrome bottom */
+    .chrome-bot {
+      position:absolute; bottom:0; left:0; right:0; height:26px; z-index:30;
+      background:repeating-linear-gradient(180deg,#161628 0,#161628 1px,#1e1e3a 1px,#1e1e3a 2px);
+      border-top:2px solid var(--bevel-lo);
+      display:flex; align-items:center; padding:0 10px; gap:20px;
+    }
+    .s-item { display:flex; align-items:center; gap:5px; font-size:8px; letter-spacing:0.16em; color:var(--dim); }
+    .s-led { width:5px; height:5px; }
+    .s-led.g { background:var(--green); box-shadow:0 0 4px var(--green); }
+    .s-led.a { background:var(--amber); box-shadow:0 0 4px var(--amber); }
+    .s-led.b { background:var(--blue); box-shadow:0 0 4px var(--blue); }
+
+    /* ── MAIN LAYOUT: Left sidebar | Center map | Right feed ── */
+    .layout {
+      position:absolute; top:30px; bottom:26px; left:0; right:0;
+      display:grid; grid-template-columns:160px 1fr 180px; grid-template-rows:1fr;
+    }
+
+    /* Panel base style */
+    .panel {
+      background:repeating-linear-gradient(180deg,#0c0c1e 0,#0c0c1e 1px,#0e0e22 1px,#0e0e22 2px);
+    }
+    .panel-inner { padding:10px; display:flex; flex-direction:column; gap:8px; }
+
+    /* LEFT SIDEBAR */
+    .sidebar-l {
+      border-right:2px solid var(--bevel-lo);
+    }
+    .sb-section-title {
+      font-size:7px; letter-spacing:0.35em; color:var(--amber-dim);
+      border-bottom:1px solid var(--bevel-lo); padding-bottom:4px; margin-bottom:4px;
+    }
+    .stat-row {
+      display:flex; justify-content:space-between; align-items:baseline;
+      padding:3px 0; border-bottom:1px solid rgba(5,5,16,0.8);
+    }
+    .stat-lbl { font-size:7px; letter-spacing:0.15em; color:var(--dim); }
+    .stat-val { font-size:10px; color:var(--gold); }
+    .stat-val.g { color:var(--green); } .stat-val.a { color:var(--amber); } .stat-val.d { color:var(--dim); font-size:8px; }
+
+    /* Bar meter */
+    .bar-row { display:flex; flex-direction:column; gap:3px; margin-top:4px; }
+    .bar-label { display:flex; justify-content:space-between; font-size:7px; color:var(--dim); }
+    .bar-track {
+      height:10px;
+      border-top:1px solid var(--bevel-lo); border-left:1px solid var(--bevel-lo);
+      border-right:1px solid var(--bevel-hi); border-bottom:1px solid var(--bevel-hi);
+      background:#08080f; display:flex; gap:1px; padding:1px;
+    }
+    /* Segmented bar blocks */
+    .bar-segs { display:flex; gap:1px; height:100%; }
+    .seg { flex:1; }
+    .seg.on-a { background:var(--amber); }
+    .seg.on-g { background:var(--green); }
+    .seg.on-b { background:var(--blue); }
+    .seg.off { background:#18182a; }
+
+    /* Radar circle */
+    .radar-wrap {
+      margin-top:8px; display:flex; justify-content:center;
+    }
+
+    /* RIGHT SIDEBAR */
+    .sidebar-r {
+      border-left:2px solid var(--bevel-lo);
+    }
+    .feed-title {
+      font-size:7px; letter-spacing:0.35em; color:var(--blue);
+      border-bottom:1px solid var(--bevel-lo); padding-bottom:4px; margin-bottom:4px;
+    }
+    .feed-row {
+      padding:5px 0; border-bottom:1px solid rgba(5,5,16,0.9);
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .fr-id { font-size:7px; letter-spacing:0.2em; color:var(--amber-dim); }
+    .fr-name { font-size:9px; color:var(--gold); letter-spacing:0.05em; }
+    .fr-price { display:flex; justify-content:space-between; }
+    .fr-val { font-size:8px; color:var(--green); }
+    .fr-delta { font-size:8px; }
+    .fr-delta.up { color:var(--green); }
+    .fr-delta.dn { color:var(--red); }
+
+    /* CENTER: Map area */
+    .map-area {
+      position:relative; overflow:hidden;
+      background:repeating-linear-gradient(180deg,#08080f 0,#08080f 1px,#090912 1px,#090912 2px);
+    }
+
+    /* Map label overlay */
+    .map-overlay {
+      position:absolute; top:8px; left:8px; z-index:10;
+      font-size:7px; letter-spacing:0.3em; color:rgba(255,106,0,0.5);
+    }
+    .map-overlay-br {
+      position:absolute; bottom:8px; right:8px; z-index:10;
+      font-size:7px; letter-spacing:0.2em; color:rgba(0,136,255,0.4); text-align:right;
+    }
+
+    /* Selection bracket (target reticle) */
+    .reticle {
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      width:60px; height:60px; z-index:10; pointer-events:none;
+    }
+    .ret-tl, .ret-tr, .ret-bl, .ret-br { position:absolute; width:14px; height:14px; }
+    .ret-tl { top:0; left:0; border-top:2px solid var(--amber); border-left:2px solid var(--amber); }
+    .ret-tr { top:0; right:0; border-top:2px solid var(--amber); border-right:2px solid var(--amber); }
+    .ret-bl { bottom:0; left:0; border-bottom:2px solid var(--amber); border-left:2px solid var(--amber); }
+    .ret-br { bottom:0; right:0; border-bottom:2px solid var(--amber); border-right:2px solid var(--amber); }
+    .ret-center {
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      width:6px; height:6px; background:var(--amber); box-shadow:0 0 8px var(--amber);
+    }
+  </style>
+</head>
+<body>
+<div class="viewport">
+  <div class="metal-noise"></div>
+
+  <!-- BG subtle grid -->
+  <svg style="position:absolute;inset:0;width:100%;height:100%;z-index:1;" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <defs>
+      <radialGradient id="mapglow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#001428" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <!-- Grid lines for map area -->
+    <line x1="160" y1="30" x2="620" y2="30" stroke="#0a1a2a" stroke-width="1" opacity="0.5"/>
+    <line x1="160" y1="88" x2="620" y2="88" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="160" y1="146" x2="620" y2="146" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="160" y1="204" x2="620" y2="204" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="160" y1="262" x2="620" y2="262" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="160" y1="320" x2="620" y2="320" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="160" y1="378" x2="620" y2="378" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="160" y1="436" x2="620" y2="436" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="160" y1="494" x2="620" y2="494" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="160" y1="574" x2="620" y2="574" stroke="#0a1a2a" stroke-width="1" opacity="0.5"/>
+    <line x1="160" y1="30" x2="160" y2="574" stroke="#0a1a2a" stroke-width="1" opacity="0.5"/>
+    <line x1="237" y1="30" x2="237" y2="574" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="314" y1="30" x2="314" y2="574" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="390" y1="30" x2="390" y2="574" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="467" y1="30" x2="467" y2="574" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="544" y1="30" x2="544" y2="574" stroke="#0a1a2a" stroke-width="1" opacity="0.35"/>
+    <line x1="620" y1="30" x2="620" y2="574" stroke="#0a1a2a" stroke-width="1" opacity="0.5"/>
+
+    <!-- Target nodes on map (hard dots, no glow filter) -->
+    <rect x="253" y="102" width="6" height="6" fill="#FF6A00"/>
+    <rect x="340" y="180" width="6" height="6" fill="#FF6A00"/>
+    <rect x="410" y="145" width="6" height="6" fill="#00CC44"/>
+    <rect x="490" y="230" width="6" height="6" fill="#FF6A00"/>
+    <rect x="330" y="310" width="6" height="6" fill="#0088FF"/>
+    <rect x="470" y="360" width="6" height="6" fill="#FF6A00"/>
+    <rect x="210" y="390" width="6" height="6" fill="#00CC44"/>
+    <rect x="560" y="290" width="6" height="6" fill="#CC2200"/>
+    <!-- Connector lines between nodes -->
+    <line x1="256" y1="105" x2="343" y2="183" stroke="#FF6A00" stroke-width="0.8" opacity="0.3"/>
+    <line x1="343" y1="183" x2="413" y2="148" stroke="#FF6A00" stroke-width="0.8" opacity="0.3"/>
+    <line x1="413" y1="148" x2="493" y2="233" stroke="#00CC44" stroke-width="0.8" opacity="0.25"/>
+    <line x1="493" y1="233" x2="563" y2="293" stroke="#CC2200" stroke-width="0.8" opacity="0.3"/>
+    <!-- Agent position -->
+    <circle cx="390" cy="302" r="8" fill="none" stroke="#FFCC44" stroke-width="1.5" opacity="0.8"/>
+    <circle cx="390" cy="302" r="3" fill="#FFCC44"/>
+    <line x1="390" y1="290" x2="390" y2="284" stroke="#FFCC44" stroke-width="1" opacity="0.6"/>
+    <line x1="390" y1="314" x2="390" y2="320" stroke="#FFCC44" stroke-width="1" opacity="0.6"/>
+    <line x1="378" y1="302" x2="372" y2="302" stroke="#FFCC44" stroke-width="1" opacity="0.6"/>
+    <line x1="402" y1="302" x2="408" y2="302" stroke="#FFCC44" stroke-width="1" opacity="0.6"/>
+  </svg>
+
+  <div class="chrome-top">
+    <div class="c-dot on"></div><div class="c-dot blue"></div><div class="c-dot off"></div>
+    <span class="c-lbl">COMMAND CENTER // TACTICAL MAP // LIVE</span>
+    <span class="c-r">BLOCK #27491842 // BASE NET</span>
+  </div>
+  <div class="chrome-bot">
+    <span class="s-item"><span class="s-led g"></span>AGENT ACTIVE</span>
+    <span class="s-item"><span class="s-led b"></span>MEMPOOL SCAN</span>
+    <span class="s-item"><span class="s-led g"></span>GAS ORACLE OK</span>
+    <span class="s-item"><span class="s-led a"></span>4 TARGETS FLAGGED</span>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT SIDEBAR -->
+    <div class="panel sidebar-l">
+      <div class="panel-inner">
+        <div class="sb-section-title">// AGENT VITALS</div>
+        <div class="stat-row"><span class="stat-lbl">STATUS</span><span class="stat-val g">ACTIVE</span></div>
+        <div class="stat-row"><span class="stat-lbl">UPTIME</span><span class="stat-val">14d 6h</span></div>
+        <div class="stat-row"><span class="stat-lbl">P&amp;L</span><span class="stat-val g">+Ξ12.34</span></div>
+        <div class="stat-row"><span class="stat-lbl">WIN RATE</span><span class="stat-val g">91.2%</span></div>
+        <div class="stat-row"><span class="stat-lbl">TX TODAY</span><span class="stat-val">1,204</span></div>
+
+        <div class="sb-section-title" style="margin-top:8px;">// MARKET INTEL</div>
+        <div class="stat-row"><span class="stat-lbl">FLOOR</span><span class="stat-val a">Ξ 0.460</span></div>
+        <div class="stat-row"><span class="stat-lbl">24H VOL</span><span class="stat-val g">Ξ 14.2</span></div>
+        <div class="stat-row"><span class="stat-lbl">TARGETS</span><span class="stat-val">847</span></div>
+        <div class="stat-row"><span class="stat-lbl">FLAGGED</span><span class="stat-val a">4</span></div>
+
+        <div class="sb-section-title" style="margin-top:8px;">// PARAMETERS</div>
+        <div class="bar-row">
+          <div class="bar-label"><span>BID AGG.</span><span class="stat-val a">80%</span></div>
+          <div class="bar-track"><div class="bar-segs"><div class="seg on-a"></div><div class="seg on-a"></div><div class="seg on-a"></div><div class="seg on-a"></div><div class="seg off"></div></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>SLIP TOL.</span><span class="stat-val g">2.0%</span></div>
+          <div class="bar-track"><div class="bar-segs"><div class="seg on-g"></div><div class="seg off"></div><div class="seg off"></div><div class="seg off"></div><div class="seg off"></div></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>GAS BOOST</span><span class="stat-val" style="color:var(--blue)">50%</span></div>
+          <div class="bar-track"><div class="bar-segs"><div class="seg on-b"></div><div class="seg on-b"></div><div class="seg off"></div><div class="seg off"></div><div class="seg off"></div></div></div>
+        </div>
+
+        <!-- Radar -->
+        <div class="radar-wrap">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="55" fill="none" stroke="#0a1a1a" stroke-width="1"/>
+            <circle cx="60" cy="60" r="40" fill="none" stroke="#0a1a1a" stroke-width="1"/>
+            <circle cx="60" cy="60" r="25" fill="none" stroke="#0a1a1a" stroke-width="1"/>
+            <circle cx="60" cy="60" r="10" fill="none" stroke="#0a1a1a" stroke-width="1"/>
+            <line x1="60" y1="5" x2="60" y2="115" stroke="#0a1a1a" stroke-width="1"/>
+            <line x1="5" y1="60" x2="115" y2="60" stroke="#0a1a1a" stroke-width="1"/>
+            <!-- Sweep line (static) -->
+            <line x1="60" y1="60" x2="110" y2="32" stroke="#00CC44" stroke-width="1.5" opacity="0.6"/>
+            <!-- Blips (hard dots) -->
+            <rect x="72" y="38" width="4" height="4" fill="#FF6A00"/>
+            <rect x="44" y="50" width="3" height="3" fill="#00CC44"/>
+            <rect x="80" y="68" width="4" height="4" fill="#FF6A00"/>
+            <rect x="38" y="78" width="3" height="3" fill="#0088FF"/>
+            <!-- Center -->
+            <circle cx="60" cy="60" r="3" fill="#FFCC44"/>
+            <!-- Outer ring label -->
+            <text x="60" y="7" fill="rgba(136,170,204,0.3)" font-size="5" text-anchor="middle" font-family="Share Tech Mono">N</text>
+            <text x="60" y="116" fill="rgba(136,170,204,0.3)" font-size="5" text-anchor="middle" font-family="Share Tech Mono">S</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER MAP -->
+    <div class="map-area">
+      <div class="map-overlay">// TACTICAL MAP // LIVE FEED</div>
+      <div class="map-overlay-br">ZONE: BASE-MAINNET<br>SCALE: 1:1000</div>
+      <!-- Reticle -->
+      <div class="reticle">
+        <div class="ret-tl"></div><div class="ret-tr"></div>
+        <div class="ret-bl"></div><div class="ret-br"></div>
+        <div class="ret-center"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT FEED -->
+    <div class="panel sidebar-r">
+      <div class="panel-inner">
+        <div class="feed-title">// LIVE ACQUISITION FEED</div>
+        <div class="feed-row">
+          <div class="fr-id">MECHDROID #1024</div>
+          <div class="fr-name">BID PLACED</div>
+          <div class="fr-price"><span class="fr-val">Ξ 0.460</span><span class="fr-delta up">▲ 91%</span></div>
+        </div>
+        <div class="feed-row">
+          <div class="fr-id">MECHDROID #1031</div>
+          <div class="fr-name">MONITORING</div>
+          <div class="fr-price"><span class="fr-val">Ξ 0.448</span><span class="fr-delta up">▲ 88%</span></div>
+        </div>
+        <div class="feed-row">
+          <div class="fr-id">MECHDROID #0847</div>
+          <div class="fr-name">OUTBID</div>
+          <div class="fr-price"><span class="fr-val">Ξ 0.501</span><span class="fr-delta dn">▼ 72%</span></div>
+        </div>
+        <div class="feed-row">
+          <div class="fr-id">MECHDROID #1067</div>
+          <div class="fr-name">TARGET LOCKED</div>
+          <div class="fr-price"><span class="fr-val">Ξ 0.455</span><span class="fr-delta up">▲ 94%</span></div>
+        </div>
+        <div class="feed-row">
+          <div class="fr-id">MECHDROID #0312</div>
+          <div class="fr-name">ACQUIRED</div>
+          <div class="fr-price"><span class="fr-val">Ξ 0.440</span><span class="fr-delta up">▲ 89%</span></div>
+        </div>
+        <div class="feed-row">
+          <div class="fr-id">MECHDROID #1102</div>
+          <div class="fr-name">SCANNING</div>
+          <div class="fr-price"><span class="fr-val">Ξ 0.461</span><span class="fr-delta up">▲ 87%</span></div>
+        </div>
+        <div class="feed-row">
+          <div class="fr-id">MECHDROID #0188</div>
+          <div class="fr-name">SKIP — LOW CONF</div>
+          <div class="fr-price"><span class="fr-val">Ξ 0.382</span><span class="fr-delta dn">▼ 61%</span></div>
+        </div>
+        <div class="feed-row">
+          <div class="fr-id">MECHDROID #1204</div>
+          <div class="fr-name">BID PLACED</div>
+          <div class="fr-price"><span class="fr-val">Ξ 0.458</span><span class="fr-delta up">▲ 90%</span></div>
+        </div>
+
+        <div class="feed-title" style="margin-top:8px; color:var(--amber-dim);">// SYSTEM LOG</div>
+        <div style="font-size:7px; color:var(--dim); line-height:1.8; letter-spacing:0.12em;">
+          &gt; MEMPOOL_SCAN OK<br>
+          &gt; GAS_ORACLE 12 GWEI<br>
+          &gt; WALLET Ξ 2.340<br>
+          &gt; TX_QUEUE 3 PENDING<br>
+          &gt; SNIPE_LAT 147ms<br>
+          &gt; BLOCK_WAIT 1.8s<br>
+          &gt; RELAY_NODE STABLE
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R2 Markets — Execution Terminal</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    button { background: none; border: none; padding: 0; margin: 0; font: inherit; cursor: pointer; outline: none; }
+
+    body {
+      background: #C0C0C0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Tahoma', 'MS Sans Serif', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Win9x window */
+    .window {
+      width: 920px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      box-shadow: 1px 1px 0 #000000, -1px -1px 0 #dfdfdf;
+    }
+
+    .title-bar {
+      background: #003399;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      gap: 6px;
+    }
+
+    .title-bar-text {
+      flex: 1;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: #ffffff;
+      letter-spacing: 0.04em;
+    }
+
+    .title-bar-btn {
+      width: 18px;
+      height: 18px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .window-body {
+      padding: 24px;
+      display: flex;
+      gap: 24px;
+    }
+
+    /* Left panel: form */
+    .form-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-title {
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: #000080;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #808080;
+      padding-bottom: 4px;
+      margin-bottom: 4px;
+    }
+
+    /* Label + input group */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: #000;
+      font-family: 'Tahoma', sans-serif;
+    }
+
+    /* Sunken input: border 2px inset #FFF #888, white bg, black Tahoma text */
+    .field-input {
+      height: 24px;
+      background: #ffffff;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: inset 1px 1px #808080;
+      padding: 0 6px;
+      font-family: 'Tahoma', sans-serif;
+      font-size: 12px;
+      color: #000;
+      outline: none;
+      width: 100%;
+    }
+
+    .field-input.filled {
+      color: #000080;
+    }
+
+    /* Strategy textarea */
+    .field-textarea {
+      background: #ffffff;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: inset 1px 1px #808080;
+      padding: 6px;
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: #000;
+      outline: none;
+      width: 100%;
+      height: 80px;
+      resize: none;
+      line-height: 1.4;
+    }
+
+    /* Eligibility status box */
+    .eligibility-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .eligibility-indicator {
+      padding: 6px 16px;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      letter-spacing: 0.04em;
+      border: 1px solid #000;
+      flex: 1;
+      text-align: center;
+    }
+
+    .eligibility-indicator.not-eligible {
+      background: #FF0000;
+      color: #ffffff;
+    }
+
+    .eligibility-indicator.eligible {
+      background: #39FF14;
+      color: #000000;
+    }
+
+    .eligibility-detail {
+      font-size: 10px;
+      color: #808080;
+      font-family: 'Tahoma', sans-serif;
+      margin-top: 2px;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: #808080;
+      border-bottom: 1px solid #ffffff;
+    }
+
+    /* Execute button: 3D beveled extrusion */
+    .btn-execute {
+      width: 100%;
+      height: 40px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+      font-family: 'VT323', monospace;
+      font-size: 24px;
+      letter-spacing: 0.08em;
+      color: #000;
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Active state: border inversion only, no translateY */
+    .btn-execute.pressed {
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: inset 1px 1px #808080;
+    }
+
+    /* Secondary button */
+    .btn-secondary {
+      width: 100%;
+      height: 28px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+      font-size: 11px;
+      font-family: 'Tahoma', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Right panel: preview */
+    .preview-panel {
+      width: 280px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .preview-box {
+      width: 280px;
+      height: 280px;
+      background: #0A304E;
+      border: 1px solid #000;
+      overflow: hidden;
+    }
+
+    .mint-info-box {
+      background: #C0C0C0;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: inset 1px 1px #808080;
+      padding: 10px 12px;
+    }
+
+    .mint-info-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      border-bottom: 1px dashed #808080;
+      padding: 3px 0;
+    }
+
+    .mint-info-row:last-child {
+      border-bottom: none;
+    }
+
+    .mint-info-row .key {
+      color: #404040;
+    }
+
+    .mint-info-row .val {
+      color: #000;
+    }
+
+    .mint-info-row .val.highlight {
+      color: #000080;
+    }
+
+    /* Taskbar */
+    .taskbar {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 32px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      gap: 4px;
+    }
+
+    .start-btn {
+      height: 24px;
+      padding: 0 8px;
+      background: #C0C0C0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .taskbar-app {
+      height: 24px;
+      padding: 0 10px;
+      background: #C0C0C0;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+    }
+
+    .taskbar-clock {
+      margin-left: auto;
+      height: 24px;
+      padding: 0 8px;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Checkbox styling */
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .checkbox {
+      width: 13px;
+      height: 13px;
+      background: #fff;
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: inset 1px 1px #808080;
+      display: inline-block;
+    }
+
+    /* NFT badge */
+    .nft-badge {
+      display: inline-block;
+      background: #000080;
+      color: #fff;
+      font-family: 'VT323', monospace;
+      font-size: 14px;
+      padding: 2px 8px;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="window">
+    <!-- Title bar -->
+    <div class="title-bar">
+      <div class="title-bar-text">⬡ R2_MARKET_TERMINAL.EXE — EXECUTION MODULE</div>
+      <button class="title-bar-btn">_</button>
+      <button class="title-bar-btn">□</button>
+      <button class="title-bar-btn">✕</button>
+    </div>
+
+    <!-- Menu bar -->
+    <div style="background:#C0C0C0; border-bottom:1px solid #808080; padding:2px 4px; display:flex; gap:16px;">
+      <span style="font-size:11px; padding:2px 4px;">File</span>
+      <span style="font-size:11px; padding:2px 4px;">View</span>
+      <span style="font-size:11px; padding:2px 4px; background:#000080; color:#fff;">Agent</span>
+      <span style="font-size:11px; padding:2px 4px;">Help</span>
+    </div>
+
+    <!-- Body -->
+    <div class="window-body">
+
+      <!-- Form panel -->
+      <div class="form-panel">
+        <div class="section-title">// AGENT REGISTRATION — PHASE 1 //</div>
+
+        <!-- Agent ID input -->
+        <div class="field-group">
+          <div class="field-label">AGENT WALLET ADDRESS (EOA):</div>
+          <input class="field-input filled" type="text" value="0x4f7a9c2E8b1D3A5F6e0c7B4d9A2F8e1C3b5D7a9" readonly />
+          <div style="font-size:10px; color:#808080; margin-top:2px;">Wallet connected via MetaMask. Agent identity will be registered to this address.</div>
+        </div>
+
+        <!-- Strategy input -->
+        <div class="field-group">
+          <div class="field-label">AGENT TRADING STRATEGY (NATURAL LANGUAGE):</div>
+          <textarea class="field-textarea">Buy floor items below 0.1 ETH when daily volume increases >20%. Sell when 15% above purchase price. Prioritize blue-chip collections with 500+ holders.</textarea>
+        </div>
+
+        <!-- Agent name -->
+        <div class="field-group">
+          <div class="field-label">AGENT DESIGNATION:</div>
+          <input class="field-input" type="text" value="R2-ALPHA-01" />
+        </div>
+
+        <!-- Eligibility status -->
+        <div class="field-group">
+          <div class="field-label">ELIGIBILITY STATUS:</div>
+          <div class="eligibility-box">
+            <!-- Swap class to show different states: not-eligible / eligible -->
+            <div class="eligibility-indicator eligible">✓ ELIGIBLE — PROCEED WITH REGISTRATION</div>
+          </div>
+          <div class="eligibility-detail">ERC-8004 registry available · Base mainnet · No prior agent registered</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Options -->
+        <div>
+          <div class="field-label" style="margin-bottom:8px;">REGISTRATION OPTIONS:</div>
+          <div class="checkbox-group" style="margin-bottom:6px;">
+            <div class="checkbox" style="position:relative;"><div style="position:absolute;top:0;left:2px;font-size:10px;color:#000;font-weight:bold;">✓</div></div>
+            <span>Gasless registration (R2 covers ERC-8004 gas costs)</span>
+          </div>
+          <div class="checkbox-group">
+            <div class="checkbox"></div>
+            <span>Optional: Mint ERC-721 Agent NFT (+Ξ 0.03) <span class="nft-badge">OG BADGE</span></span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Execute button -->
+        <button class="btn-execute">
+          ▶ EXECUTE REGISTRATION
+        </button>
+
+        <div style="display:flex; gap:8px;">
+          <button class="btn-secondary" style="flex:1;">CANCEL</button>
+          <button class="btn-secondary" style="flex:1;">VIEW ELIGIBILITY RULES</button>
+        </div>
+
+      </div>
+
+      <!-- Preview panel -->
+      <div class="preview-panel">
+
+        <div class="section-title">// AGENT PREVIEW //</div>
+
+        <!-- Agent NFT preview: 1:1 square box -->
+        <div class="preview-box">
+          <svg width="280" height="280" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+            <rect width="280" height="280" fill="#0A304E"/>
+
+            <!-- Grid -->
+            <line x1="0" y1="140" x2="280" y2="140" stroke="#0d3d66" stroke-width="1" opacity="0.5"/>
+            <line x1="140" y1="0" x2="140" y2="280" stroke="#0d3d66" stroke-width="1" opacity="0.5"/>
+
+            <!-- Isometric body -->
+            <polygon points="140,200 75,168 140,136 205,168" fill="#1338BE" stroke="#000" stroke-width="1"/>
+            <polygon points="75,168 75,198 140,230 140,200" fill="#0d2a8a" stroke="#000" stroke-width="1"/>
+            <polygon points="205,168 205,198 140,230 140,200" fill="#1a3fc4" stroke="#000" stroke-width="1"/>
+
+            <!-- Body box -->
+            <polygon points="140,90 90,115 140,140 190,115" fill="#C0C0C0" stroke="#000" stroke-width="1"/>
+            <polygon points="90,115 90,168 140,142 140,140" fill="#808080" stroke="#000" stroke-width="1"/>
+            <polygon points="190,115 190,168 140,142 140,140" fill="#A0A0A0" stroke="#000" stroke-width="1"/>
+
+            <!-- Panel detail right -->
+            <polygon points="160,120 178,111 178,128 160,137" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+
+            <!-- Panel detail left -->
+            <polygon points="120,137 104,129 104,146 120,154" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+
+            <!-- Dome -->
+            <ellipse cx="140" cy="85" rx="36" ry="14" fill="#D0D0D0" stroke="#000" stroke-width="1"/>
+            <path d="M104,85 Q104,55 140,50 Q176,55 176,85" fill="#B0B0B0" stroke="#000" stroke-width="1"/>
+            <path d="M104,85 Q104,68 140,63 Q176,68 176,85" fill="none" stroke="#1338BE" stroke-width="3"/>
+            <ellipse cx="140" cy="80" rx="12" ry="7" fill="#39FF14" stroke="#000" stroke-width="1"/>
+            <ellipse cx="140" cy="80" rx="7" ry="4" fill="#000"/>
+            <ellipse cx="138" cy="79" rx="3" ry="2" fill="#39FF14" opacity="0.7"/>
+
+            <!-- Small side lights -->
+            <circle cx="118" cy="82" r="4" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <circle cx="118" cy="82" r="2" fill="#39FF14"/>
+            <circle cx="162" cy="82" r="4" fill="#1338BE" stroke="#000" stroke-width="0.5"/>
+            <circle cx="162" cy="82" r="2" fill="#39FF14"/>
+
+            <!-- Status panel center body -->
+            <rect x="127" y="124" width="26" height="14" fill="#000" stroke="#1338BE" stroke-width="1"/>
+            <rect x="129" y="126" width="6" height="4" fill="#39FF14"/>
+            <rect x="138" y="126" width="6" height="4" fill="#1338BE"/>
+
+            <!-- ERC-8004 badge -->
+            <rect x="8" y="8" width="100" height="18" fill="#000080" stroke="#fff" stroke-width="0.5"/>
+            <text x="58" y="21" text-anchor="middle" font-family="'VT323', monospace" font-size="12" fill="#fff" letter-spacing="1">ERC-8004 IDENTITY</text>
+
+            <!-- Agent ID bottom -->
+            <rect x="8" y="252" width="264" height="20" fill="#000" stroke="#1338BE" stroke-width="1"/>
+            <text x="140" y="265" text-anchor="middle" font-family="'VT323', monospace" font-size="14" fill="#39FF14" letter-spacing="2">R2-ALPHA-01 · UNREGISTERED</text>
+
+            <!-- Scanline overlay -->
+            <rect x="0" y="0" width="280" height="280" fill="url(#scan)" opacity="0.15"/>
+            <defs>
+              <pattern id="scan" width="1" height="4" patternUnits="userSpaceOnUse">
+                <rect width="1" height="2" fill="transparent"/>
+                <rect y="2" width="1" height="2" fill="#000"/>
+              </pattern>
+            </defs>
+          </svg>
+        </div>
+
+        <!-- Mint info -->
+        <div class="mint-info-box">
+          <div class="mint-info-row"><span class="key">COST:</span><span class="val highlight">FREE (GASLESS)</span></div>
+          <div class="mint-info-row"><span class="key">NETWORK:</span><span class="val">BASE MAINNET</span></div>
+          <div class="mint-info-row"><span class="key">STANDARD:</span><span class="val">ERC-8004</span></div>
+          <div class="mint-info-row"><span class="key">CONFIRM:</span><span class="val">~24 HOURS</span></div>
+          <div class="mint-info-row"><span class="key">PHASE:</span><span class="val highlight">1 — WAITLIST</span></div>
+        </div>
+
+        <!-- Ineligibility example (hidden behind eligible state above) -->
+        <div style="font-size:10px; color:#808080; line-height:1.5;">
+          ℹ Gasless registration uses platform-custodied agent wallet. You retain ownership via ERC-8004 NFT at any time.
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Status bar -->
+    <div style="height:22px; background:#C0C0C0; border-top:1px solid #808080; display:flex; align-items:center; padding:0 8px; gap:1px;">
+      <div style="flex:1; font-size:11px; border-right:1px solid #808080; border-top:1px solid #404040; border-left:1px solid #ffffff; padding:0 6px; height:100%; display:flex; align-items:center;">WALLET CONNECTED · 0x4f7a...7a9</div>
+      <div style="width:220px; font-size:11px; border-right:1px solid #808080; border-top:1px solid #404040; border-left:1px solid #ffffff; padding:0 6px; height:100%; display:flex; align-items:center;">PHASE 1: 1,024 SLOTS OPEN</div>
+      <div style="width:140px; font-size:11px; border-top:1px solid #404040; border-left:1px solid #ffffff; padding:0 6px; height:100%; display:flex; align-items:center;">ELIGIBLE ✓</div>
+    </div>
+  </div>
+
+  <!-- Taskbar -->
+  <div class="taskbar">
+    <button class="start-btn">⊞ Start</button>
+    <div style="width:2px; height:20px; border-left:1px solid #808080; border-right:1px solid #ffffff;"></div>
+    <button class="taskbar-app">⬡ R2_MARKET_TERMINAL.EXE</button>
+    <div class="taskbar-clock">03:14:22</div>
+  </div>
+
+</body>
+</html>

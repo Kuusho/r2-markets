@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R2 Markets — System Boot</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000000;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+      font-family: 'VT323', 'Courier New', monospace;
+    }
+
+    /* CRT Scanline overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.25) 2px,
+        rgba(0, 0, 0, 0.25) 4px
+      );
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Subtle vignette */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
+      pointer-events: none;
+      z-index: 9;
+    }
+
+    .terminal-container {
+      position: absolute;
+      top: 50%;
+      left: 80px;
+      transform: translateY(-50%);
+      padding: 0;
+      width: 60ch;
+    }
+
+    .terminal-line {
+      font-family: 'VT323', monospace;
+      font-size: 28px;
+      color: #39FF14;
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+      text-shadow: 0 0 6px rgba(57, 255, 20, 0.6), 0 0 12px rgba(57, 255, 20, 0.2);
+      white-space: pre;
+      display: block;
+    }
+
+    .terminal-line.dim {
+      color: #1a7a08;
+      text-shadow: none;
+    }
+
+    .terminal-line.bright {
+      color: #39FF14;
+      text-shadow: 0 0 8px rgba(57, 255, 20, 0.9), 0 0 16px rgba(57, 255, 20, 0.4);
+    }
+
+    .spacer {
+      height: 16px;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 16px;
+      height: 22px;
+      background: #39FF14;
+      box-shadow: 0 0 8px rgba(57, 255, 20, 0.8);
+      vertical-align: bottom;
+    }
+
+    /* Grid alignment indicator — faint 16px rule lines */
+    .grid-rule {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image:
+        linear-gradient(rgba(57,255,20,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(57,255,20,0.03) 1px, transparent 1px);
+      background-size: 16px 16px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Bootup sequence header */
+    .boot-header {
+      font-family: 'VT323', monospace;
+      font-size: 48px;
+      color: #39FF14;
+      text-shadow: 0 0 12px rgba(57,255,20,0.8);
+      letter-spacing: 0.04em;
+      margin-bottom: 32px;
+    }
+
+    .boot-separator {
+      font-family: 'VT323', monospace;
+      font-size: 28px;
+      color: #1a7a08;
+      letter-spacing: 0.02em;
+      margin: 8px 0;
+    }
+
+    /* Status indicators on right side */
+    .status-panel {
+      position: absolute;
+      top: 50%;
+      right: 80px;
+      transform: translateY(-50%);
+      border: 1px solid #1a7a08;
+      padding: 24px 32px;
+      min-width: 36ch;
+    }
+
+    .status-panel-title {
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: #1a7a08;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      border-bottom: 1px dashed #1a7a08;
+      padding-bottom: 8px;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      color: #39FF14;
+      line-height: 1.8;
+      gap: 32px;
+    }
+
+    .status-row .label {
+      color: #1a7a08;
+    }
+
+    .status-row .value {
+      color: #39FF14;
+      text-shadow: 0 0 4px rgba(57,255,20,0.5);
+    }
+
+    .status-row .value.active {
+      color: #39FF14;
+      text-shadow: 0 0 8px rgba(57,255,20,0.9);
+    }
+
+    .status-row .value.ok {
+      color: #39FF14;
+    }
+
+    /* Bottom watermark */
+    .watermark {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: #0d3d06;
+      letter-spacing: 0.05em;
+    }
+
+    /* Top-right corner coords */
+    .coords {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: #1a7a08;
+      letter-spacing: 0.04em;
+    }
+
+    /* Top-left corner logo mark */
+    .corner-mark {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: #1a7a08;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-rule"></div>
+
+  <div class="corner-mark">R2-MKTS//SYS</div>
+  <div class="coords">X:0000 Y:0000</div>
+
+  <div class="terminal-container">
+    <div class="boot-header">R2-MARKETS OS v1.0.4</div>
+
+    <div class="terminal-line">BIOS VERSION 2.0.4.4  COPYRIGHT R2-SYSTEMS CORP.</div>
+    <div class="boot-separator">────────────────────────────────────────────────────────</div>
+
+    <div class="spacer"></div>
+
+    <div class="terminal-line bright">INITIALIZING MECHANICAL CORE........</div>
+    <div class="terminal-line">MEM CHECK: 640K OK</div>
+    <div class="terminal-line">EXTENDED MEMORY: 131072K OK</div>
+
+    <div class="spacer"></div>
+
+    <div class="terminal-line">AGENT REGISTRY MODULE............... [LOADED]</div>
+    <div class="terminal-line">ERC-8004 INTERFACE.................. [ACTIVE]</div>
+    <div class="terminal-line">BASE NETWORK BRIDGE................. [SYNCED]</div>
+    <div class="terminal-line dim">NFT INDEX CACHE..................... [BUILDING]</div>
+    <div class="terminal-line dim">TRADING PROTOCOLS................... [STANDBY]</div>
+
+    <div class="spacer"></div>
+
+    <div class="boot-separator">────────────────────────────────────────────────────────</div>
+    <div class="terminal-line">LOADING PROTOCOLS... [DONE]</div>
+    <div class="terminal-line">STARTING R2_MARKET_TERMINAL.EXE</div>
+
+    <div class="spacer"></div>
+
+    <div class="terminal-line bright"><span class="cursor">█</span></div>
+  </div>
+
+  <!-- Right side system status panel -->
+  <div class="status-panel">
+    <div class="status-panel-title">// SYSTEM STATUS //</div>
+    <div class="status-row"><span class="label">CHAIN:</span><span class="value active">BASE</span></div>
+    <div class="status-row"><span class="label">BLOCK:</span><span class="value">27,481,992</span></div>
+    <div class="status-row"><span class="label">AGENTS:</span><span class="value">1,024</span></div>
+    <div class="status-row"><span class="label">VOLUME:</span><span class="value">Ξ 14.2</span></div>
+    <div class="status-row"><span class="label">STATUS:</span><span class="value ok">ONLINE</span></div>
+  </div>
+
+  <div class="watermark">© R2-SYSTEMS CORP 2025 — ALL RIGHTS RESERVED</div>
+</body>
+</html>

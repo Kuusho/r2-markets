@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: TARGET ROSTER</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root { --bg:#1A0B2E; --pink:#FF007F; --green:#CCFF00; --cyan:#00FFFF; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); width:100vw; height:100vh; overflow:hidden; position:relative; font-family:'Anton',Impact,sans-serif; }
+
+    .kata-layer {
+      position:absolute; inset:0; z-index:1; pointer-events:none;
+      font-family:'Noto Sans JP',sans-serif; font-weight:900; font-size:80px;
+      color:rgba(255,255,255,0.04); line-height:1.1; padding:10px; overflow:hidden;
+    }
+
+    /* HUD strips */
+    .hud-top {
+      position:absolute; top:0; left:0; right:0; height:54px; z-index:40;
+      background:rgba(0,0,0,0.9); border-bottom:3px solid var(--pink);
+      display:flex; align-items:center; padding:0 24px; gap:16px;
+    }
+    .hud-title { font-family:'Anton',sans-serif; font-size:20px; font-style:italic; color:var(--pink); letter-spacing:0; }
+    .hud-sub { font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.2em; color:rgba(0,255,255,0.4); }
+    .hud-right { margin-left:auto; font-family:'Share Tech Mono',monospace; font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:0.15em; }
+
+    .hud-bot {
+      position:absolute; bottom:0; left:0; right:0; height:44px; z-index:40;
+      background:rgba(0,0,0,0.9); border-top:3px solid var(--cyan);
+      display:flex; align-items:center; padding:0 24px; gap:24px;
+    }
+    .hud-stat { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.15em; color:rgba(255,255,255,0.25); }
+    .hud-stat span { color:var(--green); }
+
+    /* ── Carousel container ── */
+    .carousel {
+      position:absolute; left:0; right:0; top:54px; bottom:44px;
+      display:flex; align-items:center; justify-content:center;
+      gap:16px; overflow:hidden; z-index:10;
+    }
+
+    /* Each portrait card: 200×560px */
+    .card {
+      width:200px; height:560px; flex-shrink:0;
+      position:relative;
+      transition: transform 0.2s, opacity 0.2s, filter 0.2s;
+      cursor:pointer;
+    }
+
+    /* Chamfer: top-right + bottom-left */
+    .card-inner {
+      position:absolute; inset:0;
+      clip-path: polygon(
+        0 0,
+        calc(100% - 24px) 0,
+        100% 24px,
+        100% 100%,
+        24px 100%,
+        0 calc(100% - 24px)
+      );
+      border:none;
+      background:#000;
+      overflow:hidden;
+    }
+
+    /* Card border via SVG overlay */
+    .card-border { position:absolute; inset:0; pointer-events:none; z-index:5; }
+
+    /* Active card */
+    .card.active { transform:scale(1.2); z-index:20; }
+    .card.active .card-border line,
+    .card.active .card-border polygon { stroke:var(--pink) !important; stroke-width:4 !important; }
+
+    /* Adjacent cards */
+    .card.near { opacity:0.3; filter:grayscale(100%); }
+
+    /* Far cards */
+    .card.far { opacity:0.15; filter:grayscale(100%); }
+
+    /* Card content */
+    .card-art {
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      z-index:2;
+    }
+
+    /* Top info strip */
+    .card-top {
+      position:absolute; top:0; left:0; right:0; z-index:10;
+      padding:12px 10px 8px;
+      background:linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+    }
+    .card-rarity {
+      font-family:'Anton',sans-serif; font-size:11px; font-style:italic; letter-spacing:1px;
+      display:inline-block; padding:2px 8px;
+      clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+    .card-id {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em;
+      color:rgba(255,255,255,0.5); margin-top:4px;
+    }
+
+    /* Bottom info strip */
+    .card-bot {
+      position:absolute; bottom:0; left:0; right:0; z-index:10;
+      padding:8px 10px 12px;
+      background:linear-gradient(0deg, rgba(0,0,0,0.95) 0%, transparent 100%);
+    }
+    .card-name {
+      font-family:'Anton',sans-serif; font-size:18px; font-style:italic; letter-spacing:-0.5px;
+      color:#fff; line-height:1;
+    }
+    .card-price {
+      font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.1em; margin-top:4px;
+    }
+    .card-trait {
+      font-family:'Share Tech Mono',monospace; font-size:8px; letter-spacing:0.1em;
+      color:rgba(255,255,255,0.3); margin-top:2px;
+    }
+
+    /* Selection arrow indicator under active card */
+    .select-arrow {
+      position:absolute; bottom:-30px; left:50%; transform:translateX(-50%);
+      font-family:'Anton',sans-serif; font-size:20px; color:var(--pink);
+    }
+
+    /* Diagonal background accent for the carousel area */
+    .carousel-bg {
+      position:absolute; inset:0; z-index:3; pointer-events:none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="kata-layer">
+  データ・ログ　ネットワーク　アクセス　システム　マーケット<br>
+  デジタル　エージェント　プロトコル　データ・ログ<br>
+  ネット　ワーク　アクセス　システム　マーケット<br>
+  デジタル　エージェント　プロトコル
+</div>
+
+<!-- Background diagonal SVG -->
+<svg class="carousel-bg" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <line x1="0" y1="54" x2="1440" y2="54" stroke="#FF007F" stroke-width="3" opacity="0.8"/>
+  <line x1="0" y1="856" x2="1440" y2="856" stroke="#00FFFF" stroke-width="3" opacity="0.8"/>
+  <!-- Diagonal accent -->
+  <line x1="0" y1="300" x2="300" y2="54" stroke="#FF007F" stroke-width="2" opacity="0.12"/>
+  <line x1="1440" y1="600" x2="1140" y2="856" stroke="#CCFF00" stroke-width="2" opacity="0.1"/>
+</svg>
+
+<!-- HUD Top -->
+<div class="hud-top">
+  <span class="hud-title">TARGET ROSTER</span>
+  <span class="hud-sub">// MECHDROID COLLECTION — CHARACTER SELECT</span>
+  <div class="hud-right">USE ◀ ▶ TO SELECT &nbsp;|&nbsp; PRESS CONFIRM TO ACQUIRE</div>
+</div>
+
+<!-- HUD Bottom -->
+<div class="hud-bot">
+  <span class="hud-stat">HOLDING: <span>25 NFTs</span></span>
+  <span class="hud-stat">FLOOR: <span>Ξ 0.48</span></span>
+  <span class="hud-stat">EST. VALUE: <span>Ξ 11.2</span></span>
+  <span class="hud-stat">P&amp;L: <span>+Ξ 0.34</span></span>
+  <span style="margin-left:auto;font-family:'Anton',sans-serif;font-size:14px;font-style:italic;color:var(--pink);">[ CONFIRM TARGET ]</span>
+</div>
+
+<!-- Carousel -->
+<div class="carousel">
+
+  <!-- Card 1 (far left) -->
+  <div class="card far">
+    <div class="card-inner">
+      <div class="card-art">
+        <svg width="160" height="400" viewBox="0 0 160 400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="160" height="400" fill="#080310"/>
+          <rect x="30" y="30" width="100" height="340" fill="#303030" stroke="#555" stroke-width="0.5"/>
+          <ellipse cx="80" cy="80" rx="38" ry="16" fill="#404040"/>
+          <ellipse cx="80" cy="70" rx="16" ry="10" fill="#555"/>
+          <circle cx="80" cy="70" r="6" fill="#222"/>
+          <rect x="36" y="110" width="88" height="180" fill="#202020"/>
+          <text x="80" y="390" text-anchor="middle" font-family="monospace" font-size="10" fill="#555">#0201</text>
+        </svg>
+      </div>
+      <div class="card-top">
+        <span class="card-rarity" style="background:#555;color:#aaa;">COMMON</span>
+        <div class="card-id">#0201</div>
+      </div>
+      <div class="card-bot">
+        <div class="card-name">R2-UNIT</div>
+        <div class="card-price" style="color:#999;">Ξ 0.48</div>
+        <div class="card-trait">CHASSIS: BASIC</div>
+      </div>
+    </div>
+    <svg class="card-border" viewBox="0 0 200 560" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 176,0 200,24 200,560 24,560 0,536" fill="none" stroke="#333" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <!-- Card 2 (near left) -->
+  <div class="card near">
+    <div class="card-inner">
+      <div class="card-art">
+        <svg width="160" height="400" viewBox="0 0 160 400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="160" height="400" fill="#001428"/>
+          <rect x="28" y="28" width="104" height="344" fill="#6090A0" stroke="#4466FF" stroke-width="0.5"/>
+          <ellipse cx="80" cy="78" rx="40" ry="16" fill="#7090B0"/>
+          <ellipse cx="80" cy="68" rx="16" ry="10" fill="#4466FF"/>
+          <circle cx="80" cy="68" r="6" fill="#000"/>
+          <rect x="34" y="108" width="92" height="184" fill="#001438"/>
+          <rect x="44" y="120" width="20" height="14" fill="#4466FF"/>
+          <rect x="70" y="120" width="20" height="14" fill="#004488"/>
+          <text x="80" y="388" text-anchor="middle" font-family="monospace" font-size="10" fill="#4466FF">#0088</text>
+        </svg>
+      </div>
+      <div class="card-top">
+        <span class="card-rarity" style="background:#1338BE;color:#7799FF;">RARE</span>
+        <div class="card-id">#0088</div>
+      </div>
+      <div class="card-bot">
+        <div class="card-name">R2-DELTA</div>
+        <div class="card-price" style="color:#4466FF;">Ξ 0.72</div>
+        <div class="card-trait">EYE: BLUE-ION &nbsp;|&nbsp; 8%</div>
+      </div>
+    </div>
+    <svg class="card-border" viewBox="0 0 200 560" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 176,0 200,24 200,560 24,560 0,536" fill="none" stroke="#1338BE" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <!-- Card 3 — ACTIVE (center, selected) -->
+  <div class="card active">
+    <div class="card-inner">
+      <div class="card-art">
+        <svg width="160" height="400" viewBox="0 0 160 400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="160" height="400" fill="#0A304E"/>
+          <rect x="24" y="24" width="112" height="352" fill="#C0C0C0" stroke="#FF007F" stroke-width="1"/>
+          <ellipse cx="80" cy="74" rx="44" ry="18" fill="#D0D0D0" stroke="#FF007F" stroke-width="0.5"/>
+          <ellipse cx="80" cy="62" rx="18" ry="12" fill="#FF007F" stroke="#000" stroke-width="0.5"/>
+          <circle cx="80" cy="62" r="8" fill="#000"/>
+          <circle cx="80" cy="62" r="4" fill="#FF007F" opacity="0.5"/>
+          <rect x="30" y="106" width="100" height="188" fill="#1338BE" stroke="#FF007F" stroke-width="0.5"/>
+          <rect x="40" y="120" width="26" height="18" fill="#FF007F"/>
+          <rect x="72" y="120" width="26" height="18" fill="#003399"/>
+          <rect x="40" y="155" width="80" height="5" fill="#003399" opacity="0.5"/>
+          <rect x="40" y="168" width="80" height="5" fill="#003399" opacity="0.3"/>
+          <text x="80" y="376" text-anchor="middle" font-family="monospace" font-size="10" fill="#FF007F">#0001</text>
+        </svg>
+      </div>
+      <div class="card-top">
+        <span class="card-rarity" style="background:#FFCC00;color:#000;">LEGENDARY</span>
+        <div class="card-id" style="color:rgba(255,0,127,0.6);">#0001</div>
+      </div>
+      <div class="card-bot">
+        <div class="card-name" style="color:var(--pink);">R2-ALPHA</div>
+        <div class="card-price" style="color:var(--green);">Ξ 2.40</div>
+        <div class="card-trait" style="color:rgba(255,0,127,0.5);">EYE: GOLD &nbsp;|&nbsp; 1.2%</div>
+      </div>
+    </div>
+    <svg class="card-border" viewBox="0 0 200 560" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 176,0 200,24 200,560 24,560 0,536" fill="none" stroke="#FF007F" stroke-width="4"/>
+    </svg>
+    <div class="select-arrow">▲</div>
+  </div>
+
+  <!-- Card 4 (near right) -->
+  <div class="card near">
+    <div class="card-inner">
+      <div class="card-art">
+        <svg width="160" height="400" viewBox="0 0 160 400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="160" height="400" fill="#1A0A2E"/>
+          <rect x="28" y="28" width="104" height="344" fill="#808080" stroke="#CC44FF" stroke-width="0.5"/>
+          <ellipse cx="80" cy="78" rx="40" ry="16" fill="#909090"/>
+          <ellipse cx="80" cy="68" rx="16" ry="10" fill="#CC44FF"/>
+          <circle cx="80" cy="68" r="6" fill="#000"/>
+          <rect x="34" y="108" width="92" height="184" fill="#2a0a4a"/>
+          <rect x="44" y="120" width="20" height="14" fill="#CC44FF"/>
+          <rect x="70" y="120" width="20" height="14" fill="#660099"/>
+          <text x="80" y="388" text-anchor="middle" font-family="monospace" font-size="10" fill="#CC44FF">#0017</text>
+        </svg>
+      </div>
+      <div class="card-top">
+        <span class="card-rarity" style="background:#660099;color:#DD88FF;">EPIC</span>
+        <div class="card-id">#0017</div>
+      </div>
+      <div class="card-bot">
+        <div class="card-name">R2-OMEGA</div>
+        <div class="card-price" style="color:#CC44FF;">Ξ 1.10</div>
+        <div class="card-trait">EYE: VIOLET &nbsp;|&nbsp; 3%</div>
+      </div>
+    </div>
+    <svg class="card-border" viewBox="0 0 200 560" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 176,0 200,24 200,560 24,560 0,536" fill="none" stroke="#660099" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <!-- Card 5 (far right) -->
+  <div class="card far">
+    <div class="card-inner">
+      <div class="card-art">
+        <svg width="160" height="400" viewBox="0 0 160 400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="160" height="400" fill="#0B1A0B"/>
+          <rect x="30" y="30" width="100" height="340" fill="#909090" stroke="#00AA44" stroke-width="0.5"/>
+          <ellipse cx="80" cy="80" rx="38" ry="16" fill="#A0A0A0"/>
+          <ellipse cx="80" cy="70" rx="16" ry="10" fill="#00AA44"/>
+          <circle cx="80" cy="70" r="6" fill="#000"/>
+          <rect x="36" y="110" width="88" height="180" fill="#0B2a0B"/>
+          <rect x="46" y="122" width="18" height="12" fill="#00AA44"/>
+          <text x="80" y="390" text-anchor="middle" font-family="monospace" font-size="10" fill="#00AA44">#0103</text>
+        </svg>
+      </div>
+      <div class="card-top">
+        <span class="card-rarity" style="background:#004422;color:#00CC55;">UNCOMMON</span>
+        <div class="card-id">#0103</div>
+      </div>
+      <div class="card-bot">
+        <div class="card-name">R2-VERDE</div>
+        <div class="card-price" style="color:#00AA44;">Ξ 0.54</div>
+        <div class="card-trait">EYE: GREEN &nbsp;|&nbsp; 12%</div>
+      </div>
+    </div>
+    <svg class="card-border" viewBox="0 0 200 560" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 176,0 200,24 200,560 24,560 0,536" fill="none" stroke="#004422" stroke-width="2"/>
+    </svg>
+  </div>
+
+</div>
+
+</body>
+</html>

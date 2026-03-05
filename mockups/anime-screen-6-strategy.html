@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: STRATEGY CONFIG</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root { --bg:#000; --pink:#FF007F; --green:#CCFF00; --cyan:#00FFFF; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); width:100vw; height:100vh; overflow:hidden; position:relative; }
+
+    /* ── HUD ── */
+    .hud-stripe {
+      position:absolute; top:0; left:0; right:0; height:50px; z-index:50;
+      background:rgba(0,0,0,0.97); border-bottom:3px solid var(--cyan);
+      display:flex; align-items:center; padding:0 24px; gap:16px;
+    }
+    .hud-title { font-family:'Anton',sans-serif; font-size:18px; font-style:italic; letter-spacing:1px; color:var(--cyan); }
+    .hud-crumb { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em; color:rgba(0,255,255,0.4); }
+    .hud-right { margin-left:auto; font-family:'Share Tech Mono',monospace; font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:0.15em; }
+
+    /* ── LAYOUT: 3-column grid ── */
+    .layout {
+      position:absolute; top:50px; left:0; right:0; bottom:0;
+      display:grid;
+      grid-template-columns: 380px 1fr 280px;
+      grid-template-rows: 1fr;
+      gap:0;
+    }
+
+    /* ── LEFT: Wireframe schematic ── */
+    .schematic-panel {
+      position:relative;
+      border-right:2px solid rgba(0,255,255,0.15);
+      background:rgba(0,10,15,0.8);
+      overflow:hidden; padding:24px 20px;
+      display:flex; flex-direction:column; gap:16px;
+    }
+
+    /* katakana noise */
+    .kata-bg {
+      position:absolute; inset:0; pointer-events:none;
+      font-family:'Noto Sans JP',sans-serif; font-weight:900; font-size:70px;
+      color:rgba(0,255,255,0.02); line-height:1.1; letter-spacing:-3px;
+      padding:10px; overflow:hidden; z-index:0;
+    }
+
+    .panel-label {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.4em;
+      color:rgba(0,255,255,0.4); text-transform:uppercase; z-index:1;
+    }
+
+    .schematic-title {
+      font-family:'Anton',sans-serif; font-size:22px; font-style:italic;
+      letter-spacing:0px; color:#fff; z-index:1;
+    }
+
+    .schematic-svg-wrap {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      z-index:1; position:relative;
+    }
+
+    .schematic-info {
+      z-index:1; display:flex; flex-direction:column; gap:8px;
+    }
+    .info-row {
+      display:flex; justify-content:space-between;
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em;
+    }
+    .info-row .lbl { color:rgba(0,255,255,0.4); }
+    .info-row .val { color:var(--cyan); }
+    .info-row .val.pink { color:var(--pink); }
+    .info-row .val.green { color:var(--green); }
+
+    /* ── CENTER: Equalizer bars ── */
+    .config-panel {
+      position:relative; padding:24px 32px;
+      border-right:2px solid rgba(255,0,127,0.1);
+      display:flex; flex-direction:column; gap:20px;
+    }
+
+    .config-title {
+      font-family:'Anton',sans-serif; font-size:28px; font-style:italic;
+      letter-spacing:0px; color:#fff;
+    }
+    .config-subtitle {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.4em;
+      color:rgba(255,0,127,0.5); margin-top:-14px;
+    }
+
+    /* Equalizer bar container */
+    .eq-grid {
+      display:flex; flex-direction:column; gap:14px;
+      flex:1;
+    }
+
+    .eq-row {
+      display:flex; align-items:center; gap:16px;
+    }
+    .eq-label {
+      font-family:'Share Tech Mono',monospace; font-size:8px; letter-spacing:0.25em;
+      color:rgba(255,255,255,0.4); width:130px; flex-shrink:0; text-transform:uppercase;
+    }
+
+    /* The equalizer bar track */
+    .eq-track {
+      flex:1; height:28px; position:relative;
+      display:flex; align-items:stretch; gap:3px;
+      transform:skewX(-8deg);
+    }
+
+    /* Individual equalizer segments */
+    .eq-seg {
+      flex:1; border:1px solid rgba(255,255,255,0.07);
+    }
+    .eq-seg.on-pink { background:var(--pink); border-color:var(--pink); box-shadow:0 0 6px rgba(255,0,127,0.4); }
+    .eq-seg.on-green { background:var(--green); border-color:var(--green); box-shadow:0 0 6px rgba(204,255,0,0.4); }
+    .eq-seg.on-cyan { background:var(--cyan); border-color:var(--cyan); box-shadow:0 0 6px rgba(0,255,255,0.4); }
+    .eq-seg.off { background:rgba(255,255,255,0.04); }
+
+    .eq-value {
+      font-family:'Anton',sans-serif; font-size:18px; font-style:italic;
+      width:60px; text-align:right; flex-shrink:0;
+    }
+    .eq-value.pink { color:var(--pink); }
+    .eq-value.green { color:var(--green); }
+    .eq-value.cyan { color:var(--cyan); }
+
+    /* APPLY button */
+    .apply-btn {
+      align-self:stretch; height:56px; margin-top:4px;
+      background:linear-gradient(135deg, #006600 0%, #CCFF00 50%, #006600 100%);
+      border:none; cursor:pointer;
+      clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 0 30px rgba(204,255,0,0.3);
+      transition:background 0.12s, transform 0.12s, box-shadow 0.12s;
+    }
+    .apply-btn:hover {
+      background:var(--green);
+      transform:translateX(-4px);
+      box-shadow:0 0 50px rgba(204,255,0,0.5);
+    }
+    .apply-btn-text {
+      font-family:'Anton',sans-serif; font-size:22px; font-style:italic; letter-spacing:3px;
+      color:#000;
+    }
+
+    /* ── RIGHT: Radial node menu ── */
+    .node-panel {
+      position:relative; padding:24px 16px;
+      display:flex; flex-direction:column; gap:16px;
+      background:rgba(0,0,5,0.9);
+    }
+
+    .node-panel-label {
+      font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.4em;
+      color:rgba(204,255,0,0.4); text-transform:uppercase;
+    }
+
+    .radial-wrap {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      position:relative;
+    }
+
+    /* Ghost letters behind radial */
+    .radial-ghost {
+      position:absolute; font-family:'Anton',sans-serif; font-size:120px;
+      font-style:italic; color:transparent;
+      -webkit-text-stroke:1px rgba(204,255,0,0.04);
+      letter-spacing:-4px;
+    }
+
+    .node-legend {
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .node-leg-item {
+      display:flex; align-items:center; gap:10px;
+      font-family:'Share Tech Mono',monospace; font-size:8px;
+      letter-spacing:0.2em; color:rgba(255,255,255,0.35);
+    }
+    .leg-dot {
+      width:10px; height:10px; flex-shrink:0;
+      clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+    }
+    .leg-dot.pink { background:var(--pink); box-shadow:0 0 6px rgba(255,0,127,0.6); }
+    .leg-dot.green { background:var(--green); box-shadow:0 0 6px rgba(204,255,0,0.6); }
+    .leg-dot.cyan { background:var(--cyan); box-shadow:0 0 6px rgba(0,255,255,0.6); }
+    .leg-dot.off { background:rgba(255,255,255,0.15); }
+
+    /* Corner accents */
+    .corner-info {
+      position:absolute; z-index:5;
+      font-family:'Share Tech Mono',monospace; font-size:9px;
+      letter-spacing:0.2em; line-height:1.8; pointer-events:none;
+    }
+    .ci-bl { bottom:20px; left:20px; color:rgba(0,255,255,0.25); }
+    .ci-br { bottom:20px; right:20px; color:rgba(204,255,0,0.2); text-align:right; }
+  </style>
+</head>
+<body>
+
+<div class="hud-stripe">
+  <span class="hud-title">STRATEGY CONFIG</span>
+  <span class="hud-crumb">HOME // MAP // AGENT // PARAMETERS</span>
+  <div class="hud-right">AGENT: R2-ALPHA-01 &nbsp;|&nbsp; BASE NET &nbsp;|&nbsp; BLOCK #27491842</div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT: Schematic wireframe -->
+  <div class="schematic-panel">
+    <div class="kata-bg">
+      データ<br>ネット<br>システム<br>アクセス<br>マーケット<br>デジタル<br>エージェント
+    </div>
+
+    <div class="panel-label">// AGENT SCHEMATIC</div>
+    <div class="schematic-title">R2-ALPHA-01</div>
+
+    <div class="schematic-svg-wrap">
+      <!-- Wireframe mech schematic SVG -->
+      <svg width="300" height="380" viewBox="0 0 300 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Grid lines behind -->
+        <line x1="0" y1="50" x2="300" y2="50" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="0" y1="100" x2="300" y2="100" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="0" y1="150" x2="300" y2="150" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="0" y1="200" x2="300" y2="200" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="0" y1="250" x2="300" y2="250" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="0" y1="300" x2="300" y2="300" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="50" y1="0" x2="50" y2="380" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="100" y1="0" x2="100" y2="380" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="150" y1="0" x2="150" y2="380" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="200" y1="0" x2="200" y2="380" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+        <line x1="250" y1="0" x2="250" y2="380" stroke="#00FFFF" stroke-width="0.4" opacity="0.12"/>
+
+        <!-- HEAD -->
+        <rect x="105" y="20" width="90" height="70" stroke="#00FFFF" stroke-width="1.5" opacity="0.7"/>
+        <!-- eye slots -->
+        <rect x="115" y="38" width="22" height="10" fill="#00FFFF" opacity="0.6"/>
+        <rect x="163" y="38" width="22" height="10" fill="#00FFFF" opacity="0.6"/>
+        <!-- mouth grill -->
+        <line x1="120" y1="62" x2="180" y2="62" stroke="#00FFFF" stroke-width="1" opacity="0.4"/>
+        <line x1="120" y1="68" x2="180" y2="68" stroke="#00FFFF" stroke-width="1" opacity="0.4"/>
+        <line x1="120" y1="74" x2="180" y2="74" stroke="#00FFFF" stroke-width="1" opacity="0.4"/>
+        <!-- antenna -->
+        <line x1="150" y1="20" x2="150" y2="8" stroke="#FF007F" stroke-width="2" opacity="0.8"/>
+        <circle cx="150" cy="6" r="4" fill="#FF007F" opacity="0.9"/>
+        <!-- head chamfer corners -->
+        <line x1="105" y1="25" x2="110" y2="20" stroke="#CCFF00" stroke-width="1" opacity="0.5"/>
+        <line x1="195" y1="20" x2="190" y2="25" stroke="#CCFF00" stroke-width="1" opacity="0.5"/>
+
+        <!-- NECK -->
+        <rect x="132" y="90" width="36" height="20" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+        <line x1="140" y1="94" x2="140" y2="106" stroke="#00FFFF" stroke-width="0.8" opacity="0.4"/>
+        <line x1="150" y1="94" x2="150" y2="106" stroke="#00FFFF" stroke-width="0.8" opacity="0.4"/>
+        <line x1="160" y1="94" x2="160" y2="106" stroke="#00FFFF" stroke-width="0.8" opacity="0.4"/>
+
+        <!-- TORSO -->
+        <rect x="80" y="110" width="140" height="100" stroke="#00FFFF" stroke-width="1.5" opacity="0.7"/>
+        <!-- chest details -->
+        <rect x="95" y="122" width="40" height="30" stroke="#FF007F" stroke-width="1" opacity="0.5"/>
+        <rect x="165" y="122" width="40" height="30" stroke="#FF007F" stroke-width="1" opacity="0.5"/>
+        <!-- center core -->
+        <circle cx="150" cy="160" r="18" stroke="#CCFF00" stroke-width="1.5" opacity="0.7"/>
+        <circle cx="150" cy="160" r="8" fill="#CCFF00" opacity="0.3"/>
+        <circle cx="150" cy="160" r="4" fill="#CCFF00" opacity="0.8"/>
+        <!-- torso chamfers -->
+        <line x1="80" y1="116" x2="86" y2="110" stroke="#CCFF00" stroke-width="1" opacity="0.5"/>
+        <line x1="220" y1="110" x2="214" y2="116" stroke="#CCFF00" stroke-width="1" opacity="0.5"/>
+        <line x1="80" y1="204" x2="86" y2="210" stroke="#CCFF00" stroke-width="1" opacity="0.5"/>
+        <line x1="220" y1="210" x2="214" y2="204" stroke="#CCFF00" stroke-width="1" opacity="0.5"/>
+
+        <!-- LEFT ARM -->
+        <rect x="38" y="116" width="34" height="80" stroke="#00FFFF" stroke-width="1" opacity="0.6"/>
+        <!-- arm joint -->
+        <circle cx="72" cy="140" r="8" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+        <!-- hand -->
+        <rect x="34" y="196" width="38" height="28" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+
+        <!-- RIGHT ARM -->
+        <rect x="228" y="116" width="34" height="80" stroke="#00FFFF" stroke-width="1" opacity="0.6"/>
+        <circle cx="228" cy="140" r="8" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+        <rect x="228" y="196" width="38" height="28" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+
+        <!-- WAIST -->
+        <rect x="100" y="210" width="100" height="25" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+        <line x1="120" y1="215" x2="120" y2="230" stroke="#00FFFF" stroke-width="0.8" opacity="0.3"/>
+        <line x1="150" y1="215" x2="150" y2="230" stroke="#00FFFF" stroke-width="0.8" opacity="0.3"/>
+        <line x1="180" y1="215" x2="180" y2="230" stroke="#00FFFF" stroke-width="0.8" opacity="0.3"/>
+
+        <!-- LEFT LEG -->
+        <rect x="98" y="235" width="44" height="90" stroke="#00FFFF" stroke-width="1" opacity="0.6"/>
+        <rect x="94" y="325" width="52" height="40" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+        <!-- knee -->
+        <rect x="98" y="275" width="44" height="12" fill="rgba(0,255,255,0.08)" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+
+        <!-- RIGHT LEG -->
+        <rect x="158" y="235" width="44" height="90" stroke="#00FFFF" stroke-width="1" opacity="0.6"/>
+        <rect x="154" y="325" width="52" height="40" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+        <rect x="158" y="275" width="44" height="12" fill="rgba(0,255,255,0.08)" stroke="#00FFFF" stroke-width="1" opacity="0.5"/>
+
+        <!-- Measurement lines -->
+        <line x1="16" y1="110" x2="16" y2="365" stroke="#CCFF00" stroke-width="0.5" opacity="0.4"/>
+        <line x1="12" y1="110" x2="20" y2="110" stroke="#CCFF00" stroke-width="0.5" opacity="0.4"/>
+        <line x1="12" y1="365" x2="20" y2="365" stroke="#CCFF00" stroke-width="0.5" opacity="0.4"/>
+        <text x="4" y="242" fill="#CCFF00" font-size="6" opacity="0.5" transform="rotate(-90 4 242)">255px</text>
+
+        <line x1="80" y1="372" x2="220" y2="372" stroke="#CCFF00" stroke-width="0.5" opacity="0.4"/>
+        <line x1="80" y1="368" x2="80" y2="376" stroke="#CCFF00" stroke-width="0.5" opacity="0.4"/>
+        <line x1="220" y1="368" x2="220" y2="376" stroke="#CCFF00" stroke-width="0.5" opacity="0.4"/>
+        <text x="143" y="380" fill="#CCFF00" font-size="6" opacity="0.5" text-anchor="middle">140px</text>
+      </svg>
+    </div>
+
+    <div class="schematic-info">
+      <div class="info-row"><span class="lbl">UNIT TYPE</span><span class="val">BIDDER MK.II</span></div>
+      <div class="info-row"><span class="lbl">CPU LOAD</span><span class="val green">23%</span></div>
+      <div class="info-row"><span class="lbl">UPTIME</span><span class="val">14d 06h 22m</span></div>
+      <div class="info-row"><span class="lbl">TX COUNT</span><span class="val green">1,204</span></div>
+      <div class="info-row"><span class="lbl">WIN RATE</span><span class="val pink">91.2%</span></div>
+    </div>
+  </div>
+
+  <!-- CENTER: Equalizer bars -->
+  <div class="config-panel">
+    <div class="config-title">PARAMETERS</div>
+    <div class="config-subtitle">// AGENT STRATEGY CONFIGURATION</div>
+
+    <div class="eq-grid">
+
+      <div class="eq-row">
+        <span class="eq-label">BID AGGRESSIVENESS</span>
+        <div class="eq-track">
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+        </div>
+        <span class="eq-value pink">80%</span>
+      </div>
+
+      <div class="eq-row">
+        <span class="eq-label">SLIPPAGE TOLERANCE</span>
+        <div class="eq-track">
+          <div class="eq-seg on-green"></div><div class="eq-seg on-green"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+        </div>
+        <span class="eq-value green">2.0%</span>
+      </div>
+
+      <div class="eq-row">
+        <span class="eq-label">GAS PRIORITY BOOST</span>
+        <div class="eq-track">
+          <div class="eq-seg on-cyan"></div><div class="eq-seg on-cyan"></div>
+          <div class="eq-seg on-cyan"></div><div class="eq-seg on-cyan"></div>
+          <div class="eq-seg on-cyan"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+        </div>
+        <span class="eq-value cyan">50%</span>
+      </div>
+
+      <div class="eq-row">
+        <span class="eq-label">CONFIDENCE THRESHOLD</span>
+        <div class="eq-track">
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg off"></div>
+        </div>
+        <span class="eq-value pink">87%</span>
+      </div>
+
+      <div class="eq-row">
+        <span class="eq-label">MAX BID PER TX</span>
+        <div class="eq-track">
+          <div class="eq-seg on-green"></div><div class="eq-seg on-green"></div>
+          <div class="eq-seg on-green"></div><div class="eq-seg on-green"></div>
+          <div class="eq-seg on-green"></div><div class="eq-seg on-green"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+        </div>
+        <span class="eq-value green">Ξ 0.6</span>
+      </div>
+
+      <div class="eq-row">
+        <span class="eq-label">CONCURRENT BIDS</span>
+        <div class="eq-track">
+          <div class="eq-seg on-cyan"></div><div class="eq-seg on-cyan"></div>
+          <div class="eq-seg on-cyan"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+        </div>
+        <span class="eq-value cyan">3</span>
+      </div>
+
+      <div class="eq-row">
+        <span class="eq-label">RARITY WEIGHT</span>
+        <div class="eq-track">
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg on-pink"></div>
+          <div class="eq-seg on-pink"></div><div class="eq-seg off"></div>
+          <div class="eq-seg off"></div><div class="eq-seg off"></div>
+        </div>
+        <span class="eq-value pink">70%</span>
+      </div>
+
+      <div class="eq-row">
+        <span class="eq-label">TRAIT CORRELATION</span>
+        <div class="eq-track">
+          <div class="eq-seg on-green"></div><div class="eq-seg on-green"></div>
+          <div class="eq-seg on-green"></div><div class="eq-seg on-green"></div>
+          <div class="eq-seg on-green"></div><div class="eq-seg on-green"></div>
+          <div class="eq-seg on-green"></div><div class="eq-seg on-green"></div>
+          <div class="eq-seg on-green"></div><div class="eq-seg on-green"></div>
+        </div>
+        <span class="eq-value green">MAX</span>
+      </div>
+
+    </div>
+
+    <button class="apply-btn">
+      <span class="apply-btn-text">APPLY CONFIG &gt;&gt;</span>
+    </button>
+  </div>
+
+  <!-- RIGHT: Radial node menu -->
+  <div class="node-panel">
+    <div class="node-panel-label">// MODE SELECT</div>
+
+    <div class="radial-wrap">
+      <div class="radial-ghost">MODE</div>
+
+      <svg width="240" height="300" viewBox="0 0 240 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Hub connectors -->
+        <!-- Center to nodes: lines first -->
+        <!-- Node positions (clock-like layout):
+          N  = 120,30
+          NE = 200,75
+          E  = 220,150
+          SE = 200,225
+          S  = 120,270
+          SW = 40,225
+          W  = 20,150
+          NW = 40,75
+        -->
+        <!-- connector lines from center(120,150) -->
+        <line x1="120" y1="150" x2="120" y2="50" stroke="#CCFF00" stroke-width="1" opacity="0.3"/>
+        <line x1="120" y1="150" x2="196" y2="82" stroke="#CCFF00" stroke-width="1" opacity="0.3"/>
+        <line x1="120" y1="150" x2="210" y2="150" stroke="#CCFF00" stroke-width="1" opacity="0.3"/>
+        <line x1="120" y1="150" x2="196" y2="218" stroke="#CCFF00" stroke-width="1" opacity="0.15"/>
+        <line x1="120" y1="150" x2="120" y2="250" stroke="#CCFF00" stroke-width="1" opacity="0.15"/>
+        <line x1="120" y1="150" x2="44" y2="218" stroke="#CCFF00" stroke-width="1" opacity="0.15"/>
+        <line x1="120" y1="150" x2="30" y2="150" stroke="#CCFF00" stroke-width="1" opacity="0.15"/>
+        <line x1="120" y1="150" x2="44" y2="82" stroke="#CCFF00" stroke-width="1" opacity="0.3"/>
+
+        <!-- Orbit rings -->
+        <circle cx="120" cy="150" r="50" stroke="rgba(204,255,0,0.1)" stroke-width="1" stroke-dasharray="4 6"/>
+        <circle cx="120" cy="150" r="100" stroke="rgba(204,255,0,0.06)" stroke-width="1" stroke-dasharray="4 8"/>
+
+        <!-- Center node — ACTIVE hub -->
+        <polygon points="120,132 138,142 138,162 120,172 102,162 102,142" fill="#1A0B2E" stroke="#CCFF00" stroke-width="2" opacity="0.9"/>
+        <circle cx="120" cy="152" r="8" fill="#CCFF00" opacity="0.9"/>
+        <text x="120" y="182" fill="#CCFF00" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1" opacity="0.9">HYBRID</text>
+
+        <!-- N: SNIPE mode — ACTIVE -->
+        <polygon points="120,32 134,42 134,58 120,68 106,58 106,42" fill="#FF007F" stroke="#FF007F" stroke-width="1.5" opacity="1"/>
+        <circle cx="120" cy="50" r="6" fill="#fff" opacity="0.9"/>
+        <text x="120" y="78" fill="#FF007F" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1">SNIPE</text>
+
+        <!-- NE: SWEEP mode — ACTIVE -->
+        <polygon points="196,64 210,74 210,90 196,100 182,90 182,74" fill="#00FFFF" stroke="#00FFFF" stroke-width="1.5" opacity="0.8"/>
+        <circle cx="196" cy="82" r="5" fill="#fff" opacity="0.8"/>
+        <text x="216" y="112" fill="#00FFFF" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1">SWEEP</text>
+
+        <!-- E: HOLD mode — inactive -->
+        <polygon points="210,132 224,142 224,158 210,168 196,158 196,142" fill="transparent" stroke="rgba(255,255,255,0.2)" stroke-width="1" opacity="0.6"/>
+        <text x="220" y="180" fill="rgba(255,255,255,0.25)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1">HOLD</text>
+
+        <!-- SE: DUMP mode — inactive -->
+        <polygon points="196,200 210,210 210,226 196,236 182,226 182,210" fill="transparent" stroke="rgba(255,255,255,0.15)" stroke-width="1" opacity="0.5"/>
+        <text x="210" y="248" fill="rgba(255,255,255,0.2)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1">DUMP</text>
+
+        <!-- S: IDLE mode — inactive -->
+        <polygon points="120,232 134,242 134,258 120,268 106,258 106,242" fill="transparent" stroke="rgba(255,255,255,0.15)" stroke-width="1" opacity="0.5"/>
+        <text x="120" y="280" fill="rgba(255,255,255,0.2)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1">IDLE</text>
+
+        <!-- SW: MONITOR mode — inactive -->
+        <polygon points="44,200 58,210 58,226 44,236 30,226 30,210" fill="transparent" stroke="rgba(255,255,255,0.15)" stroke-width="1" opacity="0.5"/>
+        <text x="30" y="248" fill="rgba(255,255,255,0.2)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1">MONITOR</text>
+
+        <!-- W: SCAN mode — inactive -->
+        <polygon points="30,132 44,142 44,158 30,168 16,158 16,142" fill="transparent" stroke="rgba(255,255,255,0.15)" stroke-width="1" opacity="0.5"/>
+        <text x="24" y="180" fill="rgba(255,255,255,0.2)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1">SCAN</text>
+
+        <!-- NW: LEARN mode — semi-active -->
+        <polygon points="44,64 58,74 58,90 44,100 30,90 30,74" fill="rgba(255,0,127,0.1)" stroke="#FF007F" stroke-width="1" opacity="0.5"/>
+        <text x="30" y="112" fill="rgba(255,0,127,0.5)" font-size="7" text-anchor="middle" font-family="'Share Tech Mono',monospace" letter-spacing="1">LEARN</text>
+      </svg>
+    </div>
+
+    <div class="node-legend">
+      <div class="node-leg-item"><div class="leg-dot pink"></div>ACTIVE MODE</div>
+      <div class="node-leg-item"><div class="leg-dot cyan"></div>SECONDARY</div>
+      <div class="node-leg-item"><div class="leg-dot green"></div>HYBRID CENTER</div>
+      <div class="node-leg-item"><div class="leg-dot off"></div>INACTIVE</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BG SVG accents -->
+<svg style="position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <path d="M0,0 L60,0 M0,0 L0,60" stroke="#00FFFF" stroke-width="2" opacity="0.3"/>
+  <path d="M1440,900 L1380,900 M1440,900 L1440,840" stroke="#CCFF00" stroke-width="2" opacity="0.25"/>
+  <path d="M0,900 L60,900 M0,900 L0,840" stroke="#FF007F" stroke-width="2" opacity="0.2"/>
+</svg>
+
+<div class="corner-info ci-bl">SYS.MODE // STRATEGY<br>PARAMS // UNLOCKED<br>VER // 1.0.4</div>
+<div class="corner-info ci-br">LAST SAVE // 6m AGO<br>DELTA // +3 PARAMS<br>STATUS // PENDING</div>
+
+</body>
+</html>

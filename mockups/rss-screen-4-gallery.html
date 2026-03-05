@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2-Markets :: Target Manifest</title>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    body {
+      margin: 0; padding: 20px 0 40px;
+      background-color: #EFEFEF;
+      background-image: repeating-linear-gradient(45deg,transparent 0,transparent 7px,#DEDEDE 7px,#DEDEDE 8px);
+      background-size: 16px 16px;
+      font-family: Verdana, Geneva, sans-serif;
+      font-size: 11px; color: #333333;
+    }
+    a:link    { color: #0033CC; text-decoration: underline; }
+    a:visited { color: #800080; text-decoration: underline; }
+    a:hover   { color: #CC0000; }
+    img.thumb { display: block; }
+    .card-title { font-size: 10px; font-weight: bold; color: #333; margin-top: 3px; line-height: 1.3; }
+    .card-price { font-size: 10px; color: #006600; font-weight: bold; }
+    .card-rarity { font-size: 8px; padding: 1px 4px; color: #FFF; font-weight: bold; }
+    .tab-active { background: #003399; color: #FFF; font-weight: bold; padding: 3px 10px;
+                  border: 1px solid #003399; font-size: 11px; font-family: Verdana, sans-serif; }
+    .tab-inactive { background: #F0F0F0; color: #333; padding: 3px 10px;
+                    border: 1px solid #CCCCCC; font-size: 11px; font-family: Verdana, sans-serif; }
+  </style>
+</head>
+<body>
+
+<!-- 1×1 transparent GIF for img placeholders -->
+
+<table width="760" align="center" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+       style="border-left:1px solid #CCCCCC; border-right:1px solid #CCCCCC; min-height:600px;">
+<tr><td>
+
+  <!-- HEADER -->
+  <table width="760" bgcolor="#0B0B2A" border="0" cellpadding="0" cellspacing="0" style="border-bottom:2px solid #CCCCCC;">
+  <tr>
+    <td height="50" valign="middle" style="padding:0 0 0 20px;">
+      <span style="font-family:Georgia,serif; font-size:20px; font-weight:bold; color:#C8D8F8; text-shadow:1px 1px 0 #fff;">R2-Markets :: Target Manifest</span>
+      <span style="font-family:Verdana,sans-serif; font-size:10px; color:#6688BB; margin-left:14px;">nft target library // agent acquisition index</span>
+    </td>
+    <td align="right" valign="middle" style="padding-right:20px;">
+      <span style="font-size:10px; color:#99AACC; font-family:Verdana,sans-serif;">r2-agent [0x8004A...]</span>
+    </td>
+  </tr>
+  </table>
+
+  <!-- NAV BAR -->
+  <table width="760" bgcolor="#003399" border="0" cellpadding="5" cellspacing="0">
+  <tr>
+    <td style="font-size:11px; font-family:Verdana,sans-serif; white-space:nowrap;">
+      &nbsp;<a href="rss-screen-1-splash.html" style="color:#CCDDFF; text-decoration:none;">Home</a>
+      &nbsp;|&nbsp;<a href="rss-screen-2-dashboard.html" style="color:#CCDDFF; text-decoration:none;">Market Feed</a>
+      &nbsp;|&nbsp;<a href="rss-screen-3-mint.html" style="color:#CCDDFF; text-decoration:none;">Execute</a>
+      &nbsp;|&nbsp;<a href="rss-screen-4-gallery.html" style="color:#FFFFFF; text-decoration:none; font-weight:bold;">Manifest</a>
+      &nbsp;|&nbsp;<a href="rss-screen-5-lore.html" style="color:#CCDDFF; text-decoration:none;">Databank</a>
+      &nbsp;|&nbsp;<a href="rss-screen-6-strategy.html" style="color:#CCDDFF; text-decoration:none;">Strategy</a>
+      &nbsp;|&nbsp;<a href="rss-screen-7-profile.html" style="color:#CCDDFF; text-decoration:none;">Agent Profile</a>
+      &nbsp;
+    </td>
+    <td align="right" style="font-size:10px; padding-right:8px;">
+      <span style="background:#EE802F; color:#FFF; padding:1px 5px; font-weight:bold; font-size:9px;">RSS</span>
+    </td>
+  </tr>
+  </table>
+
+  <!-- BREADCRUMB + FILTER TABS -->
+  <table width="760" bgcolor="#F5F5F5" border="0" cellpadding="4" cellspacing="0" style="border-bottom:1px solid #CCCCCC;">
+  <tr>
+    <td style="font-size:10px; color:#666; padding-left:14px;">
+      <a href="rss-screen-1-splash.html">Home</a> &rsaquo; <strong>Target Manifest</strong>
+      &nbsp;&mdash;&nbsp; 48 assets tracked &nbsp;|&nbsp; Sorted by: Floor Price
+    </td>
+  </tr>
+  </table>
+
+  <!-- FILTER TABS -->
+  <table width="760" border="0" cellpadding="0" cellspacing="0" bgcolor="#E8E8E8" style="border-bottom:1px solid #CCCCCC;">
+  <tr>
+    <td style="padding:6px 12px 0;">
+      <input type="button" value="All Collections" class="tab-active">
+      <input type="button" value="Protardio Citizens" class="tab-inactive">
+      <input type="button" value="BasePunks v2" class="tab-inactive">
+      <input type="button" value="Anon Frogs" class="tab-inactive">
+      &nbsp;
+      <span style="font-size:10px; color:#666; margin-left:16px;">Sort by:</span>
+      <select style="font-size:10px; font-family:Verdana,sans-serif;">
+        <option>Floor Price</option>
+        <option>Last Sale</option>
+        <option>Rarity Score</option>
+        <option>Agent Score</option>
+      </select>
+    </td>
+  </tr>
+  </table>
+
+  <!-- NFT GRID — 4-column table layout with real img tags -->
+  <table width="760" border="0" cellpadding="10" cellspacing="0" style="padding:10px;">
+  <tr valign="top">
+
+    <!-- CARD 1 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="PCZ #0001"
+             style="display:block; background-color:#1A2A4A;">
+      </a>
+      <p class="card-title"><a href="#">PCZ #0001</a></p>
+      <p class="card-price">0.0082 ETH</p>
+      <p><span class="card-rarity" style="background:#CC6600;">RARE</span>
+         <span style="font-size:9px; color:#999;">Rarity: 94</span></p>
+    </td>
+
+    <!-- CARD 2 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="PCZ #0117"
+             style="display:block; background-color:#2A1A3A;">
+      </a>
+      <p class="card-title"><a href="#">PCZ #0117</a></p>
+      <p class="card-price">0.0089 ETH</p>
+      <p><span class="card-rarity" style="background:#9900AA;">EPIC</span>
+         <span style="font-size:9px; color:#999;">Rarity: 147</span></p>
+    </td>
+
+    <!-- CARD 3 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="BP2 #0044"
+             style="display:block; background-color:#0A2A1A;">
+      </a>
+      <p class="card-title"><a href="#">BasePunks #0044</a></p>
+      <p class="card-price">0.0214 ETH</p>
+      <p><span class="card-rarity" style="background:#CC9900;">LEG</span>
+         <span style="font-size:9px; color:#999;">Rarity: 211</span></p>
+    </td>
+
+    <!-- CARD 4 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="PCZ #0008"
+             style="display:block; background-color:#1A3A2A;">
+      </a>
+      <p class="card-title"><a href="#">PCZ #0008</a></p>
+      <p class="card-price">0.0083 ETH</p>
+      <p><span class="card-rarity" style="background:#336699;">UNC</span>
+         <span style="font-size:9px; color:#999;">Rarity: 67</span></p>
+    </td>
+
+  </tr>
+  <tr>
+    <td colspan="4"><hr size="1" color="#EEEEEE"></td>
+  </tr>
+  <tr valign="top">
+
+    <!-- CARD 5 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="AF #0312"
+             style="display:block; background-color:#2A2A0A;">
+      </a>
+      <p class="card-title"><a href="#">Anon Frog #0312</a></p>
+      <p class="card-price">0.0009 ETH</p>
+      <p><span class="card-rarity" style="background:#666666;">COM</span>
+         <span style="font-size:9px; color:#999;">Rarity: 22</span></p>
+    </td>
+
+    <!-- CARD 6 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="PCZ #0553"
+             style="display:block; background-color:#3A1A1A;">
+      </a>
+      <p class="card-title"><a href="#">PCZ #0553</a></p>
+      <p class="card-price">0.0091 ETH</p>
+      <p><span class="card-rarity" style="background:#CC6600;">RARE</span>
+         <span style="font-size:9px; color:#999;">Rarity: 88</span></p>
+    </td>
+
+    <!-- CARD 7 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="BP2 #0199"
+             style="display:block; background-color:#0A1A3A;">
+      </a>
+      <p class="card-title"><a href="#">BasePunks #0199</a></p>
+      <p class="card-price">0.0217 ETH</p>
+      <p><span class="card-rarity" style="background:#336699;">UNC</span>
+         <span style="font-size:9px; color:#999;">Rarity: 71</span></p>
+    </td>
+
+    <!-- CARD 8 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="AF #0077"
+             style="display:block; background-color:#1A2A3A;">
+      </a>
+      <p class="card-title"><a href="#">Anon Frog #0077</a></p>
+      <p class="card-price">0.0011 ETH</p>
+      <p><span class="card-rarity" style="background:#CC6600;">RARE</span>
+         <span style="font-size:9px; color:#999;">Rarity: 103</span></p>
+    </td>
+
+  </tr>
+  <tr>
+    <td colspan="4"><hr size="1" color="#EEEEEE"></td>
+  </tr>
+  <tr valign="top">
+
+    <!-- CARD 9 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="PCZ #0002"
+             style="display:block; background-color:#2A3A1A;">
+      </a>
+      <p class="card-title"><a href="#">PCZ #0002</a></p>
+      <p class="card-price">0.0084 ETH</p>
+      <p><span class="card-rarity" style="background:#666666;">COM</span>
+         <span style="font-size:9px; color:#999;">Rarity: 18</span></p>
+    </td>
+
+    <!-- CARD 10 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="BP2 #0007"
+             style="display:block; background-color:#3A2A0A;">
+      </a>
+      <p class="card-title"><a href="#">BasePunks #0007</a></p>
+      <p class="card-price">0.0244 ETH</p>
+      <p><span class="card-rarity" style="background:#CC9900;">LEG</span>
+         <span style="font-size:9px; color:#999;">Rarity: 239</span></p>
+    </td>
+
+    <!-- CARD 11 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="PCZ #0441"
+             style="display:block; background-color:#1A1A3A;">
+      </a>
+      <p class="card-title"><a href="#">PCZ #0441</a></p>
+      <p class="card-price">0.0088 ETH</p>
+      <p><span class="card-rarity" style="background:#336699;">UNC</span>
+         <span style="font-size:9px; color:#999;">Rarity: 55</span></p>
+    </td>
+
+    <!-- CARD 12 -->
+    <td width="172" align="center" style="padding:10px; vertical-align:top;">
+      <a href="#">
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+             width="152" height="152" border="2" alt="AF #0888"
+             style="display:block; background-color:#2A1A2A;">
+      </a>
+      <p class="card-title"><a href="#">Anon Frog #0888</a></p>
+      <p class="card-price">0.0014 ETH</p>
+      <p><span class="card-rarity" style="background:#9900AA;">EPIC</span>
+         <span style="font-size:9px; color:#999;">Rarity: 168</span></p>
+    </td>
+
+  </tr>
+  </table>
+
+  <!-- PAGINATION -->
+  <table width="760" border="0" cellpadding="8" cellspacing="0" bgcolor="#F8F8F8" style="border-top:1px solid #CCCCCC;">
+  <tr>
+    <td style="font-size:10px; color:#666;">Showing 1–12 of 48 assets</td>
+    <td align="center">
+      <a href="#" style="padding:2px 7px; border:1px solid #CCCCCC; font-weight:bold; color:#003399; text-decoration:none; background:#FFFFFF;">1</a>
+      <a href="#" style="padding:2px 7px; border:1px solid #CCCCCC; color:#0033CC; text-decoration:none; background:#FFFFFF;">2</a>
+      <a href="#" style="padding:2px 7px; border:1px solid #CCCCCC; color:#0033CC; text-decoration:none; background:#FFFFFF;">3</a>
+      <a href="#" style="padding:2px 7px; border:1px solid #CCCCCC; color:#0033CC; text-decoration:none; background:#FFFFFF;">4</a>
+    </td>
+    <td align="right" style="font-size:10px; color:#666;">
+      <a href="#">Next 12 &rsaquo;</a>
+    </td>
+  </tr>
+  </table>
+
+  <!-- FOOTER -->
+  <table width="760" bgcolor="#F5F5F5" border="0" cellpadding="6" cellspacing="0" style="border-top:2px solid #CCCCCC;">
+  <tr>
+    <td style="font-size:10px; color:#999;">&copy; 2026 R2-Systems Corp. All rights reserved.</td>
+    <td align="right" style="font-size:10px; color:#999;">
+      <a href="#">RSS Feed</a> &bull; <a href="#">Sitemap</a> &bull; <a href="#">Contact</a>
+    </td>
+  </tr>
+  </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>
