@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "tasks/blockers.md",
+                "file": "decisions/referral-gate.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "blockers"
+              "title": "referral-gate"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "tasks/blockers.md",
+                "file": "decisions/referral-gate.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for blockers"
+              "title": "Backlinks for referral-gate"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "tasks/blockers.md",
+                "file": "decisions/referral-gate.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from blockers"
+              "title": "Outgoing links from referral-gate"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "tasks/blockers.md",
+                "file": "decisions/referral-gate.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of blockers"
+              "title": "Outline of referral-gate"
             }
           }
         ]
@@ -185,11 +185,16 @@
   },
   "active": "51f5baa3a95364eb",
   "lastOpenFiles": [
+    "decisions/oauth-stub.md",
+    "decisions/css-modules.md",
+    "design/tokens.md",
+    "design/screens.md",
+    "design/patterns.md",
+    "tasks/blockers.md",
     "tasks/pending.md",
     "pages/databank.md",
     "pages/profile.md",
     "pages/splash.md",
-    "tasks/blockers.md",
     "tasks/done.md",
     "00_INDEX.md"
   ]
