@@ -1,0 +1,102 @@
+.center {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding-bottom: 48px;
+}
+
+.sysLabel {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.45em;
+  color: rgba(0, 255, 255, 0.55);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.logoR2 {
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 180px;
+  line-height: 0.85;
+  font-style: italic;
+  letter-spacing: -6px;
+  color: transparent;
+  -webkit-text-stroke: 5px var(--gr);
+  text-shadow: 0 0 60px rgba(204, 255, 0, 0.15);
+  user-select: none;
+}
+
+.logoMarkets {
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 68px;
+  line-height: 1;
+  font-style: italic;
+  letter-spacing: -1px;
+  color: transparent;
+  -webkit-text-stroke: 3px var(--pk);
+  margin-top: -8px;
+}
+
+.logoRule {
+  width: 420px;
+  height: 4px;
+  margin: 18px 0 14px;
+  background: linear-gradient(90deg, var(--pk) 0%, var(--cy) 50%, var(--gr) 100%);
+}
+
+.tagline {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  color: rgba(0, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.btnOuter {
+  margin-top: 52px;
+  transform: skewX(-20deg);
+  display: inline-block;
+  position: relative;
+}
+
+.accessBtn {
+  display: block;
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 26px;
+  font-style: italic;
+  letter-spacing: 3px;
+  color: var(--pk);
+  background: transparent;
+  border: 4px solid var(--pk);
+  padding: 18px 56px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 40px rgba(255, 0, 127, 0.15),
+    0 0 40px rgba(255, 0, 127, 0.25),
+    0 0 80px rgba(255, 0, 127, 0.1);
+  transition: background 0.12s, color 0.12s, box-shadow 0.12s, transform 0.12s;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+}
+.accessBtn:hover {
+  background: var(--pk);
+  color: #000;
+  box-shadow: inset 0 0 60px rgba(255, 0, 127, 0.5), 0 0 80px rgba(255, 0, 127, 0.6);
+  transform: translateX(-5px);
+}
+
+.btnText {
+  display: block;
+  transform: skewX(20deg);
+}

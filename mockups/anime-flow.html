@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R2 Markets :: FLOW MAP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Share+Tech+Mono&family=Noto+Sans+JP:wght@900&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    :root { --bg:#08000F; --pink:#FF007F; --green:#CCFF00; --cyan:#00FFFF; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); width:100vw; height:100vh; overflow:hidden; position:relative; font-family:'Share Tech Mono',monospace; }
+
+    /* Katakana noise */
+    .kata-layer {
+      position:absolute; inset:0; z-index:1; pointer-events:none;
+      font-family:'Noto Sans JP',sans-serif; font-weight:900; font-size:96px;
+      color:rgba(255,255,255,0.025); line-height:1.05; letter-spacing:-3px;
+      padding:10px 20px; overflow:hidden; word-break:break-all;
+    }
+
+    /* HUD top bar */
+    .hud-top {
+      position:absolute; top:0; left:0; right:0; height:58px; z-index:40;
+      background:rgba(0,0,0,0.97); border-bottom:3px solid var(--pink);
+      display:flex; align-items:center; padding:0 24px; gap:20px;
+    }
+    .hud-title { font-family:'Anton',sans-serif; font-size:22px; font-style:italic; letter-spacing:1px; color:var(--pink); }
+    .hud-sep { color:rgba(255,0,127,0.3); font-size:16px; }
+    .hud-sub { font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.3em; color:rgba(0,255,255,0.5); }
+    .hud-right { margin-left:auto; font-family:'Share Tech Mono',monospace; font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:0.15em; text-align:right; line-height:1.8; }
+
+    /* HUD corner brackets */
+    .c-tl { position:absolute; top:14px; left:14px; width:26px; height:26px; z-index:41; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan); }
+    .c-tr { position:absolute; top:14px; right:14px; width:26px; height:26px; z-index:41; border-top:2px solid var(--pink); border-right:2px solid var(--pink); }
+    .c-bl { position:absolute; bottom:62px; left:14px; width:26px; height:26px; z-index:41; border-bottom:2px solid var(--green); border-left:2px solid var(--green); }
+    .c-br { position:absolute; bottom:62px; right:14px; width:26px; height:26px; z-index:41; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan); }
+
+    /* Main flow SVG container */
+    .flow-svg {
+      position:absolute; top:58px; left:0; right:0; bottom:48px;
+      width:100%; height:calc(100vh - 106px);
+    }
+
+    /* Phase header labels (positioned over the SVG) */
+    .phase-label {
+      position:absolute; z-index:10; font-family:'Anton',sans-serif; font-style:italic;
+      font-size:11px; letter-spacing:0.4em; pointer-events:none;
+    }
+    .pl-onboard { top:68px; left:80px; color:rgba(255,0,127,0.45); }
+    .pl-trading  { top:68px; left:580px; color:rgba(0,255,255,0.45); }
+    .pl-aux      { top:68px; right:110px; color:rgba(204,255,0,0.35); }
+
+    /* Legend */
+    .legend {
+      position:absolute; bottom:58px; left:24px; z-index:20;
+      display:flex; flex-direction:column; gap:7px;
+      background:rgba(0,0,0,0.7); padding:10px 14px;
+      border:1px solid rgba(255,0,127,0.15);
+      clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+    }
+    .leg-row { display:flex; align-items:center; gap:10px; font-size:8px; letter-spacing:0.2em; color:rgba(255,255,255,0.4); }
+    .leg-line { width:28px; height:2px; }
+    .leg-line.pk { background:var(--pink); }
+    .leg-line.cy { background:var(--cyan); }
+    .leg-line.gr { background:var(--green); }
+    .leg-line.dash { background:repeating-linear-gradient(90deg, rgba(204,255,0,0.5) 0px, rgba(204,255,0,0.5) 4px, transparent 4px, transparent 8px); }
+
+    /* ═══ FLOW NAV ═══ */
+    .flow-nav{position:fixed;bottom:0;left:0;right:0;height:48px;z-index:100;background:rgba(0,0,0,0.93);border-top:3px solid var(--pink);display:flex;align-items:stretch;box-shadow:0 -4px 24px rgba(255,0,127,0.25);font-family:'Share Tech Mono',monospace;}
+    .fn-arrow{width:68px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;letter-spacing:.15em;text-decoration:none;transition:background .1s;user-select:none;}
+    .fn-arrow.prev{color:#00FFFF;border-right:1px solid rgba(255,0,127,.2);}
+    .fn-arrow.next{color:#CCFF00;border-left:1px solid rgba(255,0,127,.2);}
+    .fn-arrow:hover{background:rgba(255,0,127,.1);}
+    .fn-items{flex:1;display:flex;align-items:stretch;}
+    .fn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;border-right:1px solid rgba(255,255,255,.04);gap:2px;transition:background .1s;position:relative;}
+    .fn-item:hover{background:rgba(255,0,127,.08);}
+    .fn-item.active{background:rgba(204,255,0,.1);}
+    .fn-item.active::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#CCFF00;}
+    .fn-num{font-size:7px;letter-spacing:.3em;color:rgba(255,0,127,.5);}
+    .fn-lbl{font-size:8px;letter-spacing:.08em;color:rgba(255,255,255,.4);white-space:nowrap;}
+    .fn-item.active .fn-num{color:#CCFF00;}
+    .fn-item.active .fn-lbl{color:#fff;}
+    .fn-item:last-child{border-right:none;}
+  </style>
+</head>
+<body>
+
+<!-- Katakana background noise -->
+<div class="kata-layer">
+  アクセス・グリッド　プロトコル　エージェント　システム　データ・ログ<br>
+  ネットワーク　デジタル　マーケット　アクセス　システム　エージェント<br>
+  プロトコル　データ・ログ　ネットワーク　デジタル　マーケット<br>
+  アクセス　エージェント　プロトコル　システム　データ・ログ
+</div>
+
+<!-- HUD corner brackets -->
+<div class="c-tl"></div>
+<div class="c-tr"></div>
+<div class="c-bl"></div>
+<div class="c-br"></div>
+
+<!-- Top HUD bar -->
+<div class="hud-top">
+  <span class="hud-title">FLOW MAP</span>
+  <span class="hud-sep">//</span>
+  <span class="hud-sub">USER JOURNEY — R2 MARKETS — ALL PHASES</span>
+  <div class="hud-right">SYS.VER // 1.0.4<br>BASE NETWORK // ERC-8004</div>
+</div>
+
+<!-- Phase headers -->
+<div class="phase-label pl-onboard">// PHASE 01: ONBOARDING //</div>
+<div class="phase-label pl-trading">// PHASE 02: TRADING CORE //</div>
+<div class="phase-label pl-aux">// AUX //</div>
+
+<!-- Main SVG flow diagram -->
+<svg class="flow-svg" viewBox="0 0 1440 680" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <!-- Arrowhead markers -->
+    <marker id="arrow-pk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,1 L9,5 L0,9 Z" fill="#FF007F"/>
+    </marker>
+    <marker id="arrow-cy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,1 L9,5 L0,9 Z" fill="#00FFFF"/>
+    </marker>
+    <marker id="arrow-gr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,1 L9,5 L0,9 Z" fill="#CCFF00"/>
+    </marker>
+    <marker id="arrow-gr-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,1 L9,5 L0,9 Z" fill="rgba(204,255,0,0.5)"/>
+    </marker>
+
+    <!-- Glow filters -->
+    <filter id="glow-pk" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-cy">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-gr">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- ═══ BACKGROUND STRUCTURE ═══ -->
+
+  <!-- Vertical lane dividers -->
+  <line x1="420" y1="40" x2="420" y2="640" stroke="rgba(255,0,127,0.06)" stroke-width="1" stroke-dasharray="6,8"/>
+  <line x1="940" y1="40" x2="940" y2="640" stroke="rgba(0,255,255,0.06)" stroke-width="1" stroke-dasharray="6,8"/>
+
+  <!-- Lane background tints -->
+  <rect x="20" y="40" width="400" height="600" fill="rgba(255,0,127,0.018)" rx="0"/>
+  <rect x="420" y="40" width="520" height="600" fill="rgba(0,255,255,0.012)" rx="0"/>
+  <rect x="940" y="40" width="480" height="600" fill="rgba(204,255,0,0.012)" rx="0"/>
+
+  <!-- Phase label underlines -->
+  <line x1="50" y1="66" x2="400" y2="66" stroke="rgba(255,0,127,0.25)" stroke-width="1"/>
+  <line x1="450" y1="66" x2="900" y2="66" stroke="rgba(0,255,255,0.2)" stroke-width="1"/>
+  <line x1="960" y1="66" x2="1400" y2="66" stroke="rgba(204,255,0,0.18)" stroke-width="1"/>
+
+  <!-- ═══ CONNECTOR ARROWS ═══ -->
+
+  <!-- 1. SPLASH → WAITLIST (vertical, pink) -->
+  <line x1="210" y1="168" x2="210" y2="235" stroke="#FF007F" stroke-width="2" marker-end="url(#arrow-pk)" filter="url(#glow-pk)" opacity="0.8"/>
+
+  <!-- 2. WAITLIST → PROFILE (vertical, pink) -->
+  <line x1="210" y1="306" x2="210" y2="373" stroke="#FF007F" stroke-width="2" marker-end="url(#arrow-pk)" filter="url(#glow-pk)" opacity="0.8"/>
+
+  <!-- 3. PROFILE → STRATEGY (vertical, pink) -->
+  <line x1="210" y1="444" x2="210" y2="511" stroke="#FF007F" stroke-width="2" marker-end="url(#arrow-pk)" filter="url(#glow-pk)" opacity="0.8"/>
+
+  <!-- 4. STRATEGY → DASHBOARD (curve, cyan — main gate) -->
+  <path d="M 300,545 C 540,545 540,408 630,408" stroke="#00FFFF" stroke-width="2.5" fill="none" marker-end="url(#arrow-cy)" filter="url(#glow-cy)" opacity="0.85"/>
+  <!-- Label on path -->
+  <text x="450" y="506" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(0,255,255,0.55)" letter-spacing="0.3em" text-anchor="middle">ACCESS GRANTED</text>
+
+  <!-- 5. DASHBOARD → MANIFEST (diagonal up-right, green) -->
+  <line x1="808" y1="388" x2="985" y2="278" stroke="#CCFF00" stroke-width="2" marker-end="url(#arrow-gr)" filter="url(#glow-gr)" opacity="0.8"/>
+
+  <!-- 6. MANIFEST → EXECUTE (vertical, green) -->
+  <line x1="1170" y1="302" x2="1170" y2="375" stroke="#CCFF00" stroke-width="2" marker-end="url(#arrow-gr)" filter="url(#glow-gr)" opacity="0.8"/>
+
+  <!-- 7. EXECUTE → DASHBOARD (U-curve loop back, green) -->
+  <path d="M 1090,408 C 1090,478 750,478 750,428" stroke="#CCFF00" stroke-width="2" fill="none" marker-end="url(#arrow-gr)" filter="url(#glow-gr)" opacity="0.7"/>
+  <text x="920" y="496" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(204,255,0,0.5)" letter-spacing="0.25em" text-anchor="middle">TRADE COMPLETE</text>
+
+  <!-- 8. DASHBOARD → DATABANK (auxiliary, dashed green) -->
+  <line x1="808" y1="428" x2="1090" y2="520" stroke="rgba(204,255,0,0.45)" stroke-width="1.5" stroke-dasharray="6,5" marker-end="url(#arrow-gr-d)" opacity="0.6"/>
+  <text x="960" y="492" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(204,255,0,0.3)" letter-spacing="0.25em" text-anchor="middle">AUX</text>
+
+  <!-- Optional: DASHBOARD can also loop back to STRATEGY (reconfigure) - subtle dashed line -->
+  <path d="M 630,388 C 400,388 320,388 300,545" stroke="rgba(0,255,255,0.18)" stroke-width="1" fill="none" stroke-dasharray="4,6" opacity="0.5"/>
+
+  <!-- ═══ SCREEN NODES ═══ -->
+
+  <!-- NODE: 01 SPLASH -->
+  <g transform="translate(210,140)" filter="url(#glow-pk)">
+    <polygon points="-90,-28 82,-28 90,-20 90,28 -82,28 -90,20" fill="#110008" stroke="#FF007F" stroke-width="2.5" opacity="0.95"/>
+    <text x="0" y="-8" font-family="Anton" font-size="11" font-style="italic" fill="rgba(255,0,127,0.5)" text-anchor="middle" letter-spacing="3">01</text>
+    <text x="0" y="8" font-family="Anton" font-size="16" font-style="italic" fill="#FF007F" text-anchor="middle" letter-spacing="0">SPLASH</text>
+    <text x="0" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" text-anchor="middle" letter-spacing="0.12em">ENTRY POINT / CTA</text>
+  </g>
+
+  <!-- NODE: 02 WAITLIST -->
+  <g transform="translate(210,270)" filter="url(#glow-pk)">
+    <polygon points="-90,-28 82,-28 90,-20 90,28 -82,28 -90,20" fill="#110008" stroke="#FF007F" stroke-width="2" opacity="0.9"/>
+    <text x="0" y="-8" font-family="Anton" font-size="11" font-style="italic" fill="rgba(255,0,127,0.5)" text-anchor="middle" letter-spacing="3">02</text>
+    <text x="0" y="8" font-family="Anton" font-size="16" font-style="italic" fill="#FF007F" text-anchor="middle">WAITLIST</text>
+    <text x="0" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" text-anchor="middle" letter-spacing="0.12em">PROTOCOL DIRECTIVES</text>
+  </g>
+
+  <!-- NODE: 03 PROFILE -->
+  <g transform="translate(210,408)" filter="url(#glow-pk)">
+    <polygon points="-90,-28 82,-28 90,-20 90,28 -82,28 -90,20" fill="#110008" stroke="#FF007F" stroke-width="2" opacity="0.9"/>
+    <text x="0" y="-8" font-family="Anton" font-size="11" font-style="italic" fill="rgba(255,0,127,0.5)" text-anchor="middle" letter-spacing="3">03</text>
+    <text x="0" y="8" font-family="Anton" font-size="16" font-style="italic" fill="#FF007F" text-anchor="middle">PROFILE</text>
+    <text x="0" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" text-anchor="middle" letter-spacing="0.12em">AGENT ID / LOADOUT</text>
+  </g>
+
+  <!-- NODE: 04 STRATEGY -->
+  <g transform="translate(210,545)" filter="url(#glow-pk)">
+    <polygon points="-90,-28 82,-28 90,-20 90,28 -82,28 -90,20" fill="#110008" stroke="#FF007F" stroke-width="2.5" opacity="0.95"/>
+    <text x="0" y="-8" font-family="Anton" font-size="11" font-style="italic" fill="rgba(255,0,127,0.5)" text-anchor="middle" letter-spacing="3">04</text>
+    <text x="0" y="8" font-family="Anton" font-size="16" font-style="italic" fill="#FF007F" text-anchor="middle">STRATEGY</text>
+    <text x="0" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" text-anchor="middle" letter-spacing="0.12em">CONFIGURE PARAMETERS</text>
+  </g>
+
+  <!-- NODE: 05 DASHBOARD (hub — larger, cyan) -->
+  <g transform="translate(720,408)">
+    <!-- Outer glow ring -->
+    <polygon points="-110,-36 102,-36 110,-28 110,36 -102,36 -110,28" fill="none" stroke="rgba(0,255,255,0.12)" stroke-width="6"/>
+    <polygon points="-110,-36 102,-36 110,-28 110,36 -102,36 -110,28" fill="#000A14" stroke="#00FFFF" stroke-width="2.5" filter="url(#glow-cy)"/>
+    <text x="0" y="-12" font-family="Anton" font-size="11" font-style="italic" fill="rgba(0,255,255,0.5)" text-anchor="middle" letter-spacing="3">05</text>
+    <text x="0" y="6" font-family="Anton" font-size="20" font-style="italic" fill="#00FFFF" text-anchor="middle" letter-spacing="-1">DASHBOARD</text>
+    <text x="0" y="24" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(0,255,255,0.45)" text-anchor="middle" letter-spacing="0.25em">◈ TRADING HUB ◈</text>
+  </g>
+
+  <!-- NODE: 06 MANIFEST -->
+  <g transform="translate(1170,260)" filter="url(#glow-gr)">
+    <polygon points="-90,-28 82,-28 90,-20 90,28 -82,28 -90,20" fill="#080F00" stroke="#CCFF00" stroke-width="2" opacity="0.9"/>
+    <text x="0" y="-8" font-family="Anton" font-size="11" font-style="italic" fill="rgba(204,255,0,0.5)" text-anchor="middle" letter-spacing="3">06</text>
+    <text x="0" y="8" font-family="Anton" font-size="16" font-style="italic" fill="#CCFF00" text-anchor="middle">MANIFEST</text>
+    <text x="0" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" text-anchor="middle" letter-spacing="0.12em">TARGET ROSTER / SELECT</text>
+  </g>
+
+  <!-- NODE: 07 EXECUTE -->
+  <g transform="translate(1170,408)" filter="url(#glow-gr)">
+    <polygon points="-90,-28 82,-28 90,-20 90,28 -82,28 -90,20" fill="#080F00" stroke="#CCFF00" stroke-width="2.5" opacity="0.95"/>
+    <text x="0" y="-8" font-family="Anton" font-size="11" font-style="italic" fill="rgba(204,255,0,0.5)" text-anchor="middle" letter-spacing="3">07</text>
+    <text x="0" y="8" font-family="Anton" font-size="16" font-style="italic" fill="#CCFF00" text-anchor="middle">EXECUTE</text>
+    <text x="0" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.3)" text-anchor="middle" letter-spacing="0.12em">SYNC / OVERRIDE</text>
+  </g>
+
+  <!-- NODE: 08 DATABANK -->
+  <g transform="translate(1170,548)">
+    <polygon points="-90,-28 82,-28 90,-20 90,28 -82,28 -90,20" fill="#040A00" stroke="rgba(204,255,0,0.45)" stroke-width="1.5" opacity="0.8"/>
+    <text x="0" y="-8" font-family="Anton" font-size="11" font-style="italic" fill="rgba(204,255,0,0.3)" text-anchor="middle" letter-spacing="3">08</text>
+    <text x="0" y="8" font-family="Anton" font-size="16" font-style="italic" fill="rgba(204,255,0,0.6)" text-anchor="middle">DATABANK</text>
+    <text x="0" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,255,255,0.2)" text-anchor="middle" letter-spacing="0.12em">CLASSIFIED ARCHIVE</text>
+  </g>
+
+  <!-- ═══ ANNOTATIONS ═══ -->
+
+  <!-- Onboarding phase annotation bubble -->
+  <g transform="translate(210,80)">
+    <rect x="-92" y="-10" width="184" height="20" fill="rgba(255,0,127,0.06)" rx="0"/>
+    <line x1="-92" y1="-10" x2="-92" y2="10" stroke="rgba(255,0,127,0.3)" stroke-width="1.5"/>
+    <text x="-82" y="4" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(255,0,127,0.55)" letter-spacing="0.3em">SEQUENTIAL UNLOCK</text>
+  </g>
+
+  <!-- Dashboard "hub" annotation -->
+  <g transform="translate(720,350)">
+    <text x="0" y="0" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(0,255,255,0.3)" letter-spacing="0.3em" text-anchor="middle">// AGENT GATEWAY //</text>
+  </g>
+
+  <!-- Trading loop annotation -->
+  <g transform="translate(1170,80)">
+    <rect x="-92" y="-10" width="184" height="20" fill="rgba(204,255,0,0.04)" rx="0"/>
+    <line x1="92" y1="-10" x2="92" y2="10" stroke="rgba(204,255,0,0.3)" stroke-width="1.5"/>
+    <text x="-82" y="4" font-family="'Share Tech Mono',monospace" font-size="8" fill="rgba(204,255,0,0.4)" letter-spacing="0.3em">TRADING LOOP</text>
+  </g>
+
+  <!-- Annotation: waitlist complete = unlock -->
+  <text x="318" y="270" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,0,127,0.3)" letter-spacing="0.15em">Complete 4 directives</text>
+
+  <!-- Annotation: confirm loadout -->
+  <text x="318" y="408" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,0,127,0.3)" letter-spacing="0.15em">Set identity + loadout</text>
+
+  <!-- Annotation: set parameters -->
+  <text x="318" y="548" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(255,0,127,0.3)" letter-spacing="0.15em">Configure agent params</text>
+
+  <!-- Annotation: select NFT target -->
+  <text x="840" y="248" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(204,255,0,0.3)" letter-spacing="0.12em">Select target NFT</text>
+
+  <!-- Annotation: authorize trade -->
+  <text x="840" y="410" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(204,255,0,0.3)" letter-spacing="0.12em">Auth &amp; execute bid</text>
+
+  <!-- Annotation: intelligence -->
+  <text x="840" y="548" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="rgba(204,255,0,0.2)" letter-spacing="0.12em">Classified intel</text>
+
+  <!-- Bottom scanline decoration -->
+  <line x1="0" y1="650" x2="1440" y2="650" stroke="rgba(255,0,127,0.06)" stroke-width="1"/>
+
+  <!-- Background diagonal accent lines -->
+  <line x1="0" y1="0" x2="420" y2="680" stroke="rgba(255,0,127,0.03)" stroke-width="2"/>
+  <line x1="1440" y1="0" x2="1020" y2="680" stroke="rgba(0,255,255,0.03)" stroke-width="2"/>
+
+</svg>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="leg-row"><div class="leg-line pk"></div>ONBOARDING PATH</div>
+  <div class="leg-row"><div class="leg-line cy"></div>ACCESS GATE (ONBOARDING → TRADING)</div>
+  <div class="leg-row"><div class="leg-line gr"></div>TRADING LOOP</div>
+  <div class="leg-row"><div class="leg-line dash"></div>AUXILIARY / OPTIONAL</div>
+</div>
+
+<!-- Flow nav -->
+<nav class="flow-nav">
+  <a class="fn-arrow prev" href="anime-screen-5-databank.html">◀ PREV</a>
+  <div class="fn-items">
+    <a class="fn-item" href="anime-screen-1-splash.html"><span class="fn-num">01</span><span class="fn-lbl">SPLASH</span></a>
+    <a class="fn-item" href="anime-screen-8-waitlist.html"><span class="fn-num">02</span><span class="fn-lbl">WAITLIST</span></a>
+    <a class="fn-item" href="anime-screen-7-profile.html"><span class="fn-num">03</span><span class="fn-lbl">PROFILE</span></a>
+    <a class="fn-item" href="anime-screen-6-strategy.html"><span class="fn-num">04</span><span class="fn-lbl">STRATEGY</span></a>
+    <a class="fn-item" href="anime-screen-2-dashboard.html"><span class="fn-num">05</span><span class="fn-lbl">DASHBOARD</span></a>
+    <a class="fn-item" href="anime-screen-4-manifest.html"><span class="fn-num">06</span><span class="fn-lbl">MANIFEST</span></a>
+    <a class="fn-item" href="anime-screen-3-execute.html"><span class="fn-num">07</span><span class="fn-lbl">EXECUTE</span></a>
+    <a class="fn-item" href="anime-screen-5-databank.html"><span class="fn-num">08</span><span class="fn-lbl">DATABANK</span></a>
+    <a class="fn-item active" href="anime-flow.html"><span class="fn-num">⬡</span><span class="fn-lbl">FLOW MAP</span></a>
+  </div>
+  <a class="fn-arrow next" href="anime-screen-1-splash.html">NEXT ▶</a>
+</nav>
+
+</body>
+</html>

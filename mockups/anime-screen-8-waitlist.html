@@ -538,5 +538,39 @@
 
 </div><!-- /layout -->
 
+
+<!-- ═══ FLOW NAV ═══ -->
+<style>
+.flow-nav{position:fixed;bottom:0;left:0;right:0;height:48px;z-index:100;background:rgba(0,0,0,0.93);border-top:3px solid #FF007F;display:flex;align-items:stretch;box-shadow:0 -4px 24px rgba(255,0,127,0.25);font-family:'Share Tech Mono',monospace;}
+.fn-arrow{width:68px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;letter-spacing:.15em;text-decoration:none;transition:background .1s;user-select:none;}
+.fn-arrow.prev{color:#00FFFF;border-right:1px solid rgba(255,0,127,.2);}
+.fn-arrow.next{color:#CCFF00;border-left:1px solid rgba(255,0,127,.2);}
+.fn-arrow:hover{background:rgba(255,0,127,.1);}
+.fn-items{flex:1;display:flex;align-items:stretch;}
+.fn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;border-right:1px solid rgba(255,255,255,.04);gap:2px;transition:background .1s;position:relative;}
+.fn-item:hover{background:rgba(255,0,127,.08);}
+.fn-item.active{background:rgba(204,255,0,.06);}
+.fn-item.active::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#CCFF00;}
+.fn-num{font-size:7px;letter-spacing:.3em;color:rgba(255,0,127,.5);}
+.fn-lbl{font-size:8px;letter-spacing:.08em;color:rgba(255,255,255,.4);white-space:nowrap;}
+.fn-item.active .fn-num{color:#CCFF00;}
+.fn-item.active .fn-lbl{color:#fff;}
+.fn-item:last-child{border-right:none;}
+</style>
+<nav class="flow-nav">
+  <a class="fn-arrow prev" href="anime-screen-1-splash.html">◀ PREV</a>
+  <div class="fn-items">
+    <a class="fn-item" href="anime-screen-1-splash.html"><span class="fn-num">01</span><span class="fn-lbl">SPLASH</span></a>
+    <a class="fn-item active" href="anime-screen-8-waitlist.html"><span class="fn-num">02</span><span class="fn-lbl">WAITLIST</span></a>
+    <a class="fn-item" href="anime-screen-7-profile.html"><span class="fn-num">03</span><span class="fn-lbl">PROFILE</span></a>
+    <a class="fn-item" href="anime-screen-6-strategy.html"><span class="fn-num">04</span><span class="fn-lbl">STRATEGY</span></a>
+    <a class="fn-item" href="anime-screen-2-dashboard.html"><span class="fn-num">05</span><span class="fn-lbl">DASHBOARD</span></a>
+    <a class="fn-item" href="anime-screen-4-manifest.html"><span class="fn-num">06</span><span class="fn-lbl">MANIFEST</span></a>
+    <a class="fn-item" href="anime-screen-3-execute.html"><span class="fn-num">07</span><span class="fn-lbl">EXECUTE</span></a>
+    <a class="fn-item" href="anime-screen-5-databank.html"><span class="fn-num">08</span><span class="fn-lbl">DATABANK</span></a>
+    <a class="fn-item" href="anime-flow.html"><span class="fn-num">⬡</span><span class="fn-lbl">FLOW MAP</span></a>
+  </div>
+  <a class="fn-arrow next" href="anime-screen-7-profile.html">NEXT ▶</a>
+</nav>
 </body>
 </html>

@@ -1,0 +1,82 @@
+.cornerTl {
+  position: absolute;
+  top: 14px; left: 14px;
+  width: 30px; height: 30px;
+  z-index: 31;
+  border-top: 3px solid var(--cy);
+  border-left: 3px solid var(--cy);
+  pointer-events: none;
+}
+.cornerTr {
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 30px; height: 30px;
+  z-index: 31;
+  border-top: 3px solid var(--pk);
+  border-right: 3px solid var(--pk);
+  pointer-events: none;
+}
+.cornerBl {
+  position: absolute;
+  bottom: 14px; left: 14px;
+  width: 30px; height: 30px;
+  z-index: 31;
+  border-bottom: 3px solid var(--gr);
+  border-left: 3px solid var(--gr);
+  pointer-events: none;
+}
+.cornerBr {
+  position: absolute;
+  bottom: 14px; right: 14px;
+  width: 30px; height: 30px;
+  z-index: 31;
+  border-bottom: 3px solid var(--cy);
+  border-right: 3px solid var(--cy);
+  pointer-events: none;
+}
+
+.hudTl {
+  position: absolute;
+  top: 22px; left: 54px;
+  z-index: 30;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: rgba(0, 255, 255, 0.4);
+  letter-spacing: 0.25em;
+  line-height: 1.9;
+  pointer-events: none;
+}
+.hudTr {
+  position: absolute;
+  top: 22px; right: 54px;
+  z-index: 30;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: rgba(255, 0, 127, 0.45);
+  letter-spacing: 0.15em;
+  text-align: right;
+  line-height: 1.9;
+  pointer-events: none;
+}
+.hudBl {
+  position: absolute;
+  bottom: 22px; left: 54px;
+  z-index: 30;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: rgba(204, 255, 0, 0.35);
+  letter-spacing: 0.15em;
+  line-height: 1.8;
+  pointer-events: none;
+}
+.hudBr {
+  position: absolute;
+  bottom: 22px; right: 54px;
+  z-index: 30;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.18);
+  letter-spacing: 0.15em;
+  text-align: right;
+  pointer-events: none;
+}
