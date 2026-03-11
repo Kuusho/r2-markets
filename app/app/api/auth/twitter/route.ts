@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const state = crypto.randomUUID()
 
   const twitterAuthUrl =
-    `https://twitter.com/i/oauth2/authorize` +
+    `https://x.com/i/oauth2/authorize` +
     `?response_type=code` +
     `&client_id=${clientId}` +
     `&redirect_uri=${redirectUri}` +

@@ -19,11 +19,18 @@ export async function GET(request: NextRequest) {
   const clientSecret = process.env.TWITTER_CLIENT_SECRET!
   const redirectUri = `${baseUrl}/api/auth/twitter/callback`
 
+  // Build Basic auth header
+  const credentials = `${clientId}:${clientSecret}`
+  const base64Credentials = Buffer.from(credentials).toString('base64')
+  
+  console.log('[Twitter OAuth] Using client_id:', clientId.substring(0, 10) + '...')
+  console.log('[Twitter OAuth] Auth header prefix:', `Basic ${base64Credentials.substring(0, 20)}...`)
+  
   const tokenRes = await fetch('https://api.twitter.com/2/oauth2/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+      'Authorization': `Basic ${base64Credentials}`,
     },
     body: new URLSearchParams({
       grant_type: 'authorization_code',
@@ -34,8 +41,12 @@ export async function GET(request: NextRequest) {
   })
 
   const tokenData = await tokenRes.json()
+  console.log('[Twitter OAuth] Token response:', JSON.stringify(tokenData, null, 2))
+  
   if (!tokenData.access_token) {
-    return NextResponse.redirect(new URL('/waitlist?error=twitter_token_failed', baseUrl))
+    const errorMsg = tokenData.error_description || tokenData.error || 'unknown'
+    console.error('[Twitter OAuth] Token exchange failed:', errorMsg)
+    return NextResponse.redirect(new URL(`/waitlist?error=twitter_token_failed&reason=${encodeURIComponent(errorMsg)}`, baseUrl))
   }
 
   const userRes = await fetch('https://api.twitter.com/2/users/me', {
@@ -51,6 +62,8 @@ export async function GET(request: NextRequest) {
       .update({
         twitter_id: twitterUser.id,
         twitter_username: twitterUser.username,
+        twitter_access_token: tokenData.access_token,
+        twitter_token_expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('wallet_address', wallet.toLowerCase())

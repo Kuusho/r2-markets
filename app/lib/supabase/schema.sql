@@ -1,15 +1,18 @@
 CREATE TABLE IF NOT EXISTS users (
-  wallet_address   TEXT PRIMARY KEY,
-  twitter_username TEXT,
-  twitter_id       TEXT,
-  discord_id       TEXT,
-  discord_username TEXT,
-  is_holder        BOOLEAN DEFAULT FALSE,
-  referral_code    TEXT UNIQUE,
-  referred_by      TEXT REFERENCES users(wallet_address),
-  status           TEXT DEFAULT 'waitlisted' CHECK (status IN ('waitlisted', 'queued', 'upgraded')),
-  created_at       TIMESTAMPTZ DEFAULT NOW(),
-  updated_at       TIMESTAMPTZ DEFAULT NOW()
+  wallet_address           TEXT PRIMARY KEY,
+  twitter_username         TEXT,
+  twitter_id               TEXT,
+  twitter_access_token     TEXT,
+  twitter_token_expires_at TIMESTAMPTZ,
+  twitter_follows_verified BOOLEAN DEFAULT FALSE,
+  discord_id               TEXT,
+  discord_username         TEXT,
+  is_holder                BOOLEAN DEFAULT FALSE,
+  referral_code            TEXT UNIQUE,
+  referred_by              TEXT REFERENCES users(wallet_address),
+  status                   TEXT DEFAULT 'waitlisted' CHECK (status IN ('waitlisted', 'queued', 'upgraded')),
+  created_at               TIMESTAMPTZ DEFAULT NOW(),
+  updated_at               TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS referrals (

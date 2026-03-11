@@ -21,6 +21,9 @@ function WaitlistContent() {
   const [twitterLinked, setTwitterLinked] = useState(false)
   const [twitterUsername, setTwitterUsername] = useState('')
   const [twitterVerifiedAt, setTwitterVerifiedAt] = useState('')
+  const [followsVerified, setFollowsVerified] = useState(false)
+  const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({})
+  const [verifyingFollows, setVerifyingFollows] = useState(false)
   const [discordLinked, setDiscordLinked] = useState(false)
   const [discordUsername, setDiscordUsername] = useState('')
   const [isHolder, setIsHolder] = useState(false)
@@ -73,8 +76,26 @@ function WaitlistContent() {
     }
   }, [isConnected, address, registerWallet])
 
+  // Verify follows handler
+  const handleVerifyFollows = useCallback(async () => {
+    if (!address || verifyingFollows) return
+    setVerifyingFollows(true)
+    try {
+      const res = await fetch(`/api/auth/twitter/verify-follows?wallet=${address}`)
+      const data = await res.json()
+      if (data.success) {
+        setFollowStatus(data.followStatus)
+        setFollowsVerified(data.allFollowed)
+      }
+    } catch (err) {
+      console.error('Failed to verify follows:', err)
+    } finally {
+      setVerifyingFollows(false)
+    }
+  }, [address, verifyingFollows])
+
   // Gate logic
-  const card1Complete = isConnected && twitterLinked
+  const card1Complete = isConnected && twitterLinked && followsVerified
   const card2Complete = referralCount >= 3
   const card3Unlocked = card1Complete
   const card3Complete = discordLinked
@@ -217,24 +238,81 @@ function WaitlistContent() {
                   {isConnected ? `WALLET :: ${truncateAddress(address!)}` : 'WALLET :: DISCONNECTED'}
                 </div>
                 <div className={styles.qcardRow}>
-                  {card1Complete ? (
-                    <>
-                      <span className={styles.badgeDone}>✓ LINK ACTIVE</span>
-                      <button className={`${styles.btn} ${styles.btnGr}`} style={{ opacity: 0.45, cursor: 'default' }}>[ FOLLOW @R2MARKETS ]</button>
-                      <span className={styles.verifiedTs}>VERIFIED {twitterVerifiedAt}</span>
-                    </>
-                  ) : !isConnected ? (
+                  {!isConnected ? (
                     <button className={`${styles.btn} ${styles.btnCy}`} onClick={handleConnectWallet}>
                       [ CONNECT WALLET ]
                     </button>
-                  ) : (
+                  ) : !twitterLinked ? (
                     <>
                       <span className={styles.badgeDone} style={{ borderColor: 'rgba(0,255,255,0.4)', color: 'var(--cy)', background: 'rgba(0,255,255,0.05)' }}>
                         ✓ WALLET: {truncateAddress(address!)}
                       </span>
-                      <a className={`${styles.btn} ${styles.btnPk}`} href="/api/auth/twitter">
+                      <button 
+                        className={`${styles.btn} ${styles.btnPk}`} 
+                        onClick={async () => {
+                          await fetch('/api/auth/set-wallet', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ wallet: address }),
+                          })
+                          window.location.href = '/api/auth/twitter'
+                        }}
+                      >
                         [ AUTHENTICATE X/TWITTER ]
-                      </a>
+                      </button>
+                    </>
+                  ) : !followsVerified ? (
+                    <>
+                      <span className={styles.badgeDone} style={{ borderColor: 'rgba(0,255,255,0.4)', color: 'var(--cy)', background: 'rgba(0,255,255,0.05)' }}>
+                        ✓ @{twitterUsername}
+                      </span>
+                      {/* R2MARKETS follow row */}
+                      {followStatus.r2markets ? (
+                        <span className={styles.badgeDone}>✓ @R2MARKETS</span>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                          <a 
+                            className={`${styles.btn} ${styles.btnPk}`}
+                            href="https://x.com/intent/follow?screen_name=r2markets" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                          >[ FOLLOW ]</a>
+                          <button 
+                            className={`${styles.btn} ${styles.btnGr}`}
+                            onClick={handleVerifyFollows}
+                            disabled={verifyingFollows}
+                            style={{ padding: '4px 8px', fontSize: '8px' }}
+                          >[ ✓ ]</button>
+                          <span style={{ fontSize: '8px', opacity: 0.6 }}>@R2MARKETS</span>
+                        </div>
+                      )}
+                      {/* KOREWAPANDESU follow row */}
+                      {followStatus.korewapandesu ? (
+                        <span className={styles.badgeDone}>✓ @KOREWAPANDESU</span>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                          <a 
+                            className={`${styles.btn} ${styles.btnCy}`}
+                            href="https://x.com/intent/follow?screen_name=korewapandesu" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                          >[ FOLLOW ]</a>
+                          <button 
+                            className={`${styles.btn} ${styles.btnGr}`}
+                            onClick={handleVerifyFollows}
+                            disabled={verifyingFollows}
+                            style={{ padding: '4px 8px', fontSize: '8px' }}
+                          >[ ✓ ]</button>
+                          <span style={{ fontSize: '8px', opacity: 0.6 }}>@KOREWAPANDESU</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span className={styles.badgeDone}>✓ LINK COMPLETE</span>
+                      <span className={styles.badgeDone}>✓ @{twitterUsername}</span>
+                      <span className={styles.badgeDone}>✓ FOLLOWS VERIFIED</span>
+                      <span className={styles.verifiedTs}>VERIFIED {twitterVerifiedAt}</span>
                     </>
                   )}
                 </div>
@@ -291,7 +369,17 @@ function WaitlistContent() {
                     ) : (
                       <>
                         <a className={`${styles.btn} ${styles.btnPk}`} href="https://discord.gg/r2markets" target="_blank" rel="noopener noreferrer">[ JOIN_DISCORD ]</a>
-                        <a className={`${styles.btn} ${styles.btnCy}`} href="/api/auth/discord">[ AUTHENTICATE DISCORD ]</a>
+                        <button 
+                          className={`${styles.btn} ${styles.btnCy}`}
+                          onClick={async () => {
+                            await fetch('/api/auth/set-wallet', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ wallet: address }),
+                            })
+                            window.location.href = '/api/auth/discord'
+                          }}
+                        >[ AUTHENTICATE DISCORD ]</button>
                         <span className={styles.discChip}>DISCORD: DISCONNECTED</span>
                       </>
                     )}
